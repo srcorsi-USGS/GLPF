@@ -89,6 +89,17 @@ data.checks.wi <- data.wi.merge[,c("SAMPLE_START_DT","startDateTime")]
 data.merge <- full_join(data.mi.merge, data.ny.merge)
 data.merge <- full_join(data.merge, data.wi.merge)
 
+data.merge.reorder <- select(data.merge, FieldID, USGSFieldID, FieldID, `Field ID`, fieldID, FieldID.left, FieldID.right,Site,
+                             Station_Name, Station_Name.1,`Station Name`,STATION_NM,
+                             `Station ID`, USGSNWISStationIDifapplicable,
+                             SAMPLE_START_DT, startDateTime, endDateTime,
+                             Startdatetimemmddyyhhmm, Enddatetimemmddyyhhmm,
+                             pdate, Sample_Collection_Date, Time,Time.left,Time.right, 
+                             Sample_Analysis_Date)
+
+write.csv(data.merge.reorder, "M:/QW Monitoring Team/GLPF/Data/R/cacheMerge/checkMergeColumns.csv", row.names = FALSE)
+
+merged.data <- data.merge[,names(data.merge)[!(names(data.merge) %in% names(data.merge.reorder))]]
 
 saveRDS(data.merge, "M:/QW Monitoring Team/GLPF/Data/R/cacheMerge/data.merge.rds")
 
