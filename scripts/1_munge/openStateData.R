@@ -25,13 +25,16 @@ data.wi.munged <- rename(data.wi,
                          WT = Temp,
                          FieldID = Station_Name) %>%
   mutate(DO = as.numeric(NA)) %>%
-  select(SAMPLE_START_DT, FieldID, state, WT, DO, Turb, SC, pH,UVch1,UVch2,UVch3) %>%
+  select(SAMPLE_START_DT, FieldID, state, WT, DO, Turb, SC, pH,
+         UVch1,UVch2,UVch3,
+         CADeepUVch1, CADeepUVch2, CADeepUVch2,
+         C7PeakT,C7PeakC) %>%
   filter(!(FieldID %in% c("BLK-DI","FLD-BLK","EMPTY"))) 
 
-data.wi.munged <- data.wi.munged %>%
+data.wi.field <- data.wi.munged %>%
   filter(state == "WI")
 
-saveRDS(data.wi.munged, file.path(cached.path,"dataWI.rds"))
+saveRDS(data.wi.field, file.path(cached.path,"dataWI.rds"))
 
 ###############################################################
 # MI:
@@ -71,7 +74,6 @@ data.mi.opt.field <- data.wi.munged %>%
 
 saveRDS(data.mi.opt.field, file.path(cached.path,"dataMIfieldOpts.rds"))
 
-
 ###############################################################
 # NY:
 ###############################################################
@@ -88,8 +90,7 @@ data.ny <- rename(data.ny,
                   Turb = TB)
 
 data.ny.opt.field <- data.wi.munged %>%
-  filter(state == "NY") %>%
-  select(SAMPLE_START_DT, FieldID, UVch1, UVch2, UVch3) 
+  filter(state == "NY") 
 
 data.ny.join <- select(data.ny, SAMPLE_START_DT, FieldID, state, WT, DO, Turb, SC, pH) 
 data.ny.join$FieldID[data.ny.join$FieldID =="WWRCTN"] <- "WWRCTN-2"
