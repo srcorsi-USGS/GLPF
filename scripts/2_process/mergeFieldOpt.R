@@ -42,9 +42,14 @@ data.mi.merge <- mergeNearest(left = data.mi, right = data.opt.mi,
                               max.diff = "1 days")
 
 data.mi.merge <- left_join(data.mi.merge, 
-               data.mi.opt.field[,c("SAMPLE_START_DT","FieldID","UVch1","UVch2","UVch3")], 
+               select(data.mi.opt.field,
+                      SAMPLE_START_DT,FieldID,
+                      UVch1,UVch2,UVch3,
+                      CADeepUVch1, CADeepUVch2, CADeepUVch2,
+                      C7PeakT,C7PeakC), 
                by=c("USGSFieldID"="FieldID")) %>%
-  rename(SAMPLE_START_DT=SAMPLE_START_DT.x) 
+  rename(SAMPLE_START_DT=SAMPLE_START_DT.x) %>%
+  select(-SAMPLE_START_DT.y)
 
 data.mi.merge <- data.mi.merge[, names(data.ny.merge)]
 

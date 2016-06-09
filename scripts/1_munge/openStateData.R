@@ -98,9 +98,15 @@ data.ny.join$FieldID[data.ny.join$FieldID =="WWRCTE"] <- "WWRCTE-1or2"
 data.ny.join$FieldID[data.ny.join$FieldID =="WWRCTJ"] <- "WWRCTJ-1or2"
 data.ny.join$FieldID[nchar(data.ny.join$FieldID) == 6] <- paste0(data.ny.join$FieldID[nchar(data.ny.join$FieldID) == 6],"-1")
 
-data.ny.munged <- left_join(data.ny.join, data.ny.opt.field, by="FieldID") %>%
-  select(-SAMPLE_START_DT.y) %>%
-  rename(SAMPLE_START_DT=SAMPLE_START_DT.x)
+data.ny.munged <- left_join(data.ny.join, 
+                            select(data.ny.opt.field,
+                                   SAMPLE_START_DT,FieldID,
+                                   UVch1,UVch2,UVch3,
+                                   CADeepUVch1, CADeepUVch2, CADeepUVch2,
+                                   C7PeakT,C7PeakC), 
+                            by="FieldID") %>%
+                  select(-SAMPLE_START_DT.y) %>%
+                  rename(SAMPLE_START_DT=SAMPLE_START_DT.x)
 
 saveRDS(data.ny.munged, file.path(cached.path,"dataNY.rds"))
 
