@@ -17,13 +17,12 @@ file.wi <- "KK_Compiled_Sensor Data20160513.csv"
 data.wi <- setDF(fread(file.path(raw.lab.path,file.wi)))
 
 data.wi$SAMPLE_START_DT <- data.wi$SampleCollectionDateTime
-data.wi$SAMPLE_START_DT <- parse_date_time(data.wi$SAMPLE_START_DT, orders = c("mdY HS", "Ymd H:M:S"))
-
+data.wi$SAMPLE_START_DT <- parse_date_time(data.wi$SAMPLE_START_DT, orders = c("mdY HM", "Ymd H:M:S"))
+data.wi$SAMPLE_START_DT <- as.POSIXct(round(data.wi$SAMPLE_START_DT, "min"))
+  
 data.wi.field.opts <- rename(data.wi, 
                          WT = Temp,
                          FieldID = Station_Name) %>%
-  select(SAMPLE_START_DT, FieldID, state,
-         UVch1,UVch2,UVch3) %>%
   filter(!(FieldID %in% c("BLK-DI","BLANK","FLD-BLK","FLDBLK","WWKKSFLBBLK","EMPTY","WWKKSFblk-02","WWFBLK-11",
                           "TEA","TEA1","TEA2","TEA3","Q","Q1","Q2","Q3",
                           "GREEN","BLUE","YELLOW","BLUE2",
@@ -31,14 +30,15 @@ data.wi.field.opts <- rename(data.wi,
                           "WWRCTL-S02-BLANK","RCTPS01BLANK","WWRCTL-03-BLANK","WWRCTP-D02-BLANK",
                           "WWRCTPS70-BLANK","VAN LARE WWTP","RCTPS02-BLANK")))
 
-data.wi.field.all <- rename(data.wi, 
-                        WT = Temp,
-                        FieldID = Station_Name) %>% #this is to be merged with the other states
+data.wi.field.all <- data.wi.field.opts %>% 
   filter(state == "WI") %>%
   filter(Filtered == "0") %>%
   mutate(DO = as.numeric(NA)) 
 
+data.wi.field.opts <- select(data.wi.field.opts, FieldID, state, UVch1,UVch2,UVch3)
+
 data.wi.field <- select(data.wi.field.all, SAMPLE_START_DT, FieldID, state, WT, DO, Turb, SC, pH)
+
 
 saveRDS(data.wi.field, file.path(cached.path,"dataWI.rds"))
 saveRDS(data.wi.field.all, file.path(cached.path,"dataWI_allData.rds"))
@@ -48,7 +48,7 @@ saveRDS(data.wi.field.all, file.path(cached.path,"dataWI_allData.rds"))
 ###############################################################
 file.mi <- "GLPF.NWIS.MI.xlsx"
 data.mi <- read_excel(file.path(raw.lab.path,file.mi))
-data.mi$SAMPLE_START_DT <- data.mi$SAMPLE_START_DT+1
+data.mi$SAMPLE_START_DT <- as.POSIXct(round(data.mi$SAMPLE_START_DT,"min"))
 
 data.mi <- rename(data.mi,
                   SiteID = `Station ID`,
@@ -93,7 +93,7 @@ data.ny <- read_excel(file.path(raw.lab.path,file.ny), na = "X")
 
 data.ny[,4:8] <- sapply(data.ny[,4:8], function(x) as.numeric(gsub(",","", x)))
 
-data.ny$SAMPLE_START_DT <- fast_strptime(paste(data.ny$Date,data.ny$Time), "%m/%d/%Y %H%M", tz = "UTC", lt=FALSE)
+data.ny$SAMPLE_START_DT <- as.POSIXct(round(fast_strptime(paste(data.ny$Date,data.ny$Time), "%m/%d/%Y %H%M", tz = "UTC", lt=FALSE),"min"))
 data.ny$state <- "NY" 
 
 data.ny <- rename(data.ny,
@@ -109,7 +109,7 @@ data.ny.join$FieldID[data.ny.join$FieldID =="WWRCTE"] <- "WWRCTE-1or2"
 data.ny.join$FieldID[data.ny.join$FieldID =="WWRCTJ"] <- "WWRCTJ-1or2"
 data.ny.join$FieldID[nchar(data.ny.join$FieldID) == 6] <- paste0(data.ny.join$FieldID[nchar(data.ny.join$FieldID) == 6],"-1")
 
-data.ny.munged <- left_join(data.ny.join, select(data.ny.opt.field, -SAMPLE_START_DT), 
+data.ny.munged <- left_join(data.ny.join, data.ny.opt.field, 
                             by=c("FieldID","state")) 
 
 saveRDS(data.ny.munged, file.path(cached.path,"dataNY.rds"))
