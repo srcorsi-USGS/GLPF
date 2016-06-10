@@ -84,8 +84,9 @@ merged.data <- cbind(data.merge[,c("SAMPLE_START_DT","fieldID","State","Season",
                                    "VirusAutosampleorSewerGrab")], 
                      merged.data) %>%
   rename(SiteID=USGSNWISStationIDifapplicable,
-         pdate = SAMPLE_START_DT)
-
+         pdate = SAMPLE_START_DT) %>%
+  mutate(SiteID = zeroPad(SiteID, 8)) %>%
+  mutate(SiteID = ifelse(substr(SiteID,1,1) == "0",SiteID,zeroPad(SiteID, 9))) #Not 100% this is needed
 
 saveRDS(merged.data, file.path(cached.path,"mergedData.rds"))
 
