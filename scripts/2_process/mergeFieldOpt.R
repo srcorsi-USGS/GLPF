@@ -19,7 +19,7 @@ rm(dfOpt)
 data.ny <- readRDS(file.path(cached.path,"dataNY.rds"))
 data.opt.ny <- filter(data.opt, State == "NY")
 
-data.ny.merge <- left_join(data.ny, select(data.opt.ny, -FieldID), 
+data.ny.merge <- inner_join(data.ny, select(data.opt.ny, -FieldID), 
                            by=c("FieldID"="USGSFieldID"))
 
 # All the optics data doesn't have a match...
@@ -32,12 +32,12 @@ data.mi <- readRDS(file.path(cached.path,"dataMI.rds"))
 data.opt.mi <- filter(data.opt, State == "MI")
 data.mi.opt.field <- readRDS(file.path(cached.path,"dataMIfieldOpts.rds"))
 
-data.mi.merge <- right_join(data.mi, select(data.opt.mi, -FieldID), 
+data.mi.merge <- inner_join(data.mi, select(data.opt.mi, -FieldID), 
                            by=c("SAMPLE_START_DT"="startDateTime")) %>%
   mutate(startDateTime=SAMPLE_START_DT)
 
 data.mi.merge <- left_join(data.mi.merge, data.mi.opt.field, 
-               by=c("USGSFieldID"="FieldID", "state"))
+               by=c("USGSFieldID"="FieldID"))
 
 data.mi.merge <- data.mi.merge[, names(data.ny.merge)]
 
@@ -47,7 +47,7 @@ data.mi.merge <- data.mi.merge[, names(data.ny.merge)]
 data.wi <- readRDS(file.path(cached.path,"dataWI.rds"))
 data.opt.wi <- filter(data.opt, State == "WI")
 
-data.wi.merge <- right_join(data.wi, select(data.opt.wi, -FieldID),
+data.wi.merge <- inner_join(data.wi, select(data.opt.wi, -FieldID),
                            by=c("FieldID"="USGSFieldID"))
 
 data.wi.merge <- data.wi.merge[, names(data.ny.merge)]
