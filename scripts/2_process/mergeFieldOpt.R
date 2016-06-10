@@ -59,8 +59,7 @@ rm(data.mi,data.mi.opt.field,data.ny,data.opt.mi,data.opt.ny,data.opt.wi, data.w
 
 data.merge <- bind_rows(data.mi.merge,data.wi.merge,data.ny.merge)
 
-data.merge.check <- select(data.merge, state, State, FieldID, USGSFieldID, fieldID, FieldID.left, 
-                             FieldID.right,FieldID.y,FilterA04µMUSGSMIBARL,FilterB02µMUWMSFS,
+data.merge.check <- select(data.merge, State, FieldID, fieldID, FilterA04µMUSGSMIBARL,FilterB02µMUWMSFS,
                              Site,USGSNWISStationIDifapplicable,USGSSTAID,
                              SAMPLE_START_DT, startDateTime, endDateTime,
                              Startdatetimemmddyyhhmm, Enddatetimemmddyyhhmm,
