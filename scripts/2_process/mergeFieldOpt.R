@@ -59,11 +59,17 @@ rm(data.mi,data.mi.opt.field,data.ny,data.opt.mi,data.opt.ny,data.opt.wi, data.w
 
 data.merge <- bind_rows(data.mi.merge,data.wi.merge,data.ny.merge)
 
+cuts <- c(0,3,6,9)
+labs <- c("Winter", "Spring", "Summer", "Fall")
+
+data.merge$Season <- labs[findInterval(as.POSIXlt(data.merge$pdate)$mon,cuts)]
+
 data.merge.check <- select(data.merge, State, FieldID, fieldID, FilterA04µMUSGSMIBARL,FilterB02µMUWMSFS,
                              Site,USGSNWISStationIDifapplicable,USGSSTAID,
                              SAMPLE_START_DT, startDateTime, endDateTime,
                              Startdatetimemmddyyhhmm, Enddatetimemmddyyhhmm,
-                             pdate, date, pedate,Time,CAGRnumber, MIBARLID,UWMFT,
+                             pdate, date, pedate,Time,Season,
+                           CAGRnumber, MIBARLID,UWMFT,
                            Comments, Comments2,hydroCondition,VirusAutosampleorSewerGrab,IfTributarySewerOutfallManholeorDitch,
                            project,Matrix,SampleType,eventNum,plotCol,plotCol2,
                            YSIPrototypeSensorUsed0NO1YES,SampleType9regular2blank7replicate,
@@ -73,7 +79,7 @@ saveRDS(data.merge.check, file.path(cached.path,"mergeCheck.rds"))
 
 merged.data <- data.merge[,names(data.merge)[!(names(data.merge) %in% names(data.merge.check))]]
 
-merged.data <- cbind(data.merge[,c("SAMPLE_START_DT","fieldID","State",
+merged.data <- cbind(data.merge[,c("SAMPLE_START_DT","fieldID","State","Season",
                                    "USGSNWISStationIDifapplicable","hydroCondition",
                                    "VirusAutosampleorSewerGrab")], 
                      merged.data) %>%
