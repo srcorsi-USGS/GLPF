@@ -18,7 +18,7 @@ data.wi$SAMPLE_START_DT <- data.wi$SampleCollectionDateTime
 data.wi$SAMPLE_START_DT <- parse_date_time(data.wi$SAMPLE_START_DT, orders = c("mdY HM", "Ymd H:M:S"))
 data.wi$SAMPLE_START_DT <- as.POSIXct(round(data.wi$SAMPLE_START_DT, "min"))
   
-data.wi.field.opts <- rename(data.wi, 
+data.wi.field.opts.full <- rename(data.wi, 
                          WT = Temp,
                          FieldID = Station_Name) %>%
   filter(!(FieldID %in% c("BLK-DI","BLANK","FLD-BLK","FLDBLK","WWKKSFLBBLK","EMPTY","WWKKSFblk-02","WWFBLK-11",
@@ -28,17 +28,16 @@ data.wi.field.opts <- rename(data.wi,
                           "WWRCTL-S02-BLANK","RCTPS01BLANK","WWRCTL-03-BLANK","WWRCTP-D02-BLANK",
                           "WWRCTPS70-BLANK","VAN LARE WWTP","RCTPS02-BLANK")))
 
-data.wi.field.all <- data.wi.field.opts %>% 
+data.wi.field.all <- data.wi.field.opts.full %>% 
   filter(state == "WI") %>%
   filter(Filtered == "0") %>%
   mutate(DO = as.numeric(NA)) 
 
-data.wi.field.opts <- select(data.wi.field.opts, FieldID, state, UVch1,UVch2,UVch3)
-
+data.wi.field.opts <- select(data.wi.field.opts.full, FieldID, state, UVch1,UVch2,UVch3)
 data.wi.field <- select(data.wi.field.all, SAMPLE_START_DT, FieldID, WT, DO, Turb, SC, pH, UVch1, UVch2, UVch3)
 
 saveRDS(data.wi.field, file.path(cached.path,"dataWI.rds"))
-saveRDS(data.wi.field.all, file.path(cached.path,"dataWI_allData.rds"))
+saveRDS(filter(data.wi.field.opts.full, state == "WI"), file.path(cached.path,"dataWI_allData.rds"))
 
 ###############################################################
 # MI:
