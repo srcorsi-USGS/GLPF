@@ -3,8 +3,6 @@ library(data.table)
 library(dplyr)
 library(dataRetrieval)
 library(lubridate)
-library(smwrBase)
-
 
 #Raw data folder:
 raw.lab.path <- "raw_data/field_data"
@@ -37,8 +35,7 @@ data.wi.field.all <- data.wi.field.opts %>%
 
 data.wi.field.opts <- select(data.wi.field.opts, FieldID, state, UVch1,UVch2,UVch3)
 
-data.wi.field <- select(data.wi.field.all, SAMPLE_START_DT, FieldID, state, WT, DO, Turb, SC, pH)
-
+data.wi.field <- select(data.wi.field.all, SAMPLE_START_DT, FieldID, WT, DO, Turb, SC, pH, UVch1, UVch2, UVch3)
 
 saveRDS(data.wi.field, file.path(cached.path,"dataWI.rds"))
 saveRDS(data.wi.field.all, file.path(cached.path,"dataWI_allData.rds"))
@@ -71,17 +68,17 @@ data.mi.wide.all <- rename(data.mi.wide,
   rename(SC = `Specific cond at 25C`,
          WT = `Temperature, water`,
          DO = `Dissolved oxygen`) %>%
-  mutate(Turb = ifelse(!is.na(`Turbidity, Nephelom`),`Turbidity, Nephelom`,`Turbidity, NephRatio`),
-         state = "MI")
+  mutate(Turb = ifelse(!is.na(`Turbidity, Nephelom`),`Turbidity, Nephelom`,`Turbidity, NephRatio`))
 
-data.mi.wide <- select(data.mi.wide.all, SAMPLE_START_DT, FieldID, state, WT, DO, Turb, SC, pH) 
+data.mi.wide <- select(data.mi.wide.all, SAMPLE_START_DT, FieldID, WT, DO, Turb, SC, pH) 
 
 saveRDS(data.mi.wide, file.path(cached.path,"dataMI.rds"))
 saveRDS(data.mi.wide.all, file.path(cached.path,"dataMI_allData.rds"))
 
 
 data.mi.opt.field <- data.wi.field.opts %>%
-  filter(state == "MI")
+  filter(state == "MI") %>%
+  select(-state)
 
 saveRDS(data.mi.opt.field, file.path(cached.path,"dataMIfieldOpts.rds"))
 
@@ -94,23 +91,23 @@ data.ny <- read_excel(file.path(raw.lab.path,file.ny), na = "X")
 data.ny[,4:8] <- sapply(data.ny[,4:8], function(x) as.numeric(gsub(",","", x)))
 
 data.ny$SAMPLE_START_DT <- as.POSIXct(round(fast_strptime(paste(data.ny$Date,data.ny$Time), "%m/%d/%Y %H%M", tz = "UTC", lt=FALSE),"min"))
-data.ny$state <- "NY" 
 
 data.ny <- rename(data.ny,
                   DO = D.O.,
                   Turb = TB)
 
 data.ny.opt.field <- data.wi.field.opts %>%
-  filter(state == "NY") 
+  filter(state == "NY") %>%
+  select(-state)
 
-data.ny.join <- select(data.ny, SAMPLE_START_DT, FieldID, state, WT, DO, Turb, SC, pH) 
+data.ny.join <- select(data.ny, SAMPLE_START_DT, FieldID, WT, DO, Turb, SC, pH) 
 data.ny.join$FieldID[data.ny.join$FieldID =="WWRCTN"] <- "WWRCTN-2"
 data.ny.join$FieldID[data.ny.join$FieldID =="WWRCTE"] <- "WWRCTE-1or2"
 data.ny.join$FieldID[data.ny.join$FieldID =="WWRCTJ"] <- "WWRCTJ-1or2"
 data.ny.join$FieldID[nchar(data.ny.join$FieldID) == 6] <- paste0(data.ny.join$FieldID[nchar(data.ny.join$FieldID) == 6],"-1")
 
 data.ny.munged <- left_join(data.ny.join, data.ny.opt.field, 
-                            by=c("FieldID","state")) 
+                            by=c("FieldID")) 
 
 saveRDS(data.ny.munged, file.path(cached.path,"dataNY.rds"))
 

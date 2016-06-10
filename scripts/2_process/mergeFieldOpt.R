@@ -1,4 +1,3 @@
-library(smwrBase)
 library(dataRetrieval)
 library(dplyr)
 
@@ -33,17 +32,12 @@ data.mi <- readRDS(file.path(cached.path,"dataMI.rds"))
 data.opt.mi <- filter(data.opt, State == "MI")
 data.mi.opt.field <- readRDS(file.path(cached.path,"dataMIfieldOpts.rds"))
 
-data.mi.merge <- mergeNearest(left = data.mi, right = data.opt.mi, 
-                              dates.left = "SAMPLE_START_DT",
-                              all.left = FALSE,
-                              dates.right = "startDateTime",
-                              max.diff = "1 days")
+data.mi.merge <- right_join(data.mi, select(data.opt.mi, -FieldID), 
+                           by=c("SAMPLE_START_DT"="startDateTime")) %>%
+  mutate(startDateTime=SAMPLE_START_DT)
 
-# data.mi.merge <- left_join(data.mi, select(data.opt.mi, -FieldID), 
-#                            by=c("SAMPLE_START_DT"="startDateTime"))
-
-data.mi.merge <- left_join(data.mi.merge, select(data.mi.opt.field, -SAMPLE_START_DT), 
-               by=c("USGSFieldID"="FieldID"))
+data.mi.merge <- left_join(data.mi.merge, data.mi.opt.field, 
+               by=c("USGSFieldID"="FieldID", "state"))
 
 data.mi.merge <- data.mi.merge[, names(data.ny.merge)]
 
@@ -55,7 +49,8 @@ data.opt.wi <- filter(data.opt, State == "WI")
 
 data.wi.merge <- right_join(data.wi, select(data.opt.wi, -FieldID),
                            by=c("FieldID"="USGSFieldID"))
-                                # "SAMPLE_START_DT"="startDateTime"))
+
+data.wi.merge <- data.wi.merge[, names(data.ny.merge)]
 
 ###############################################################
 # Full merge:
@@ -63,9 +58,6 @@ data.wi.merge <- right_join(data.wi, select(data.opt.wi, -FieldID),
 rm(data.mi,data.mi.opt.field,data.ny,data.opt.mi,data.opt.ny,data.opt.wi, data.wi)
 
 data.merge <- bind_rows(data.mi.merge,data.wi.merge,data.ny.merge)
-
-# data.merge <- full_join(data.mi.merge, data.ny.merge)
-# data.merge <- full_join(data.merge, data.wi.merge)
 
 data.merge.check <- select(data.merge, state, State, FieldID, USGSFieldID, fieldID, FieldID.left, 
                              FieldID.right,FieldID.y,FilterA04µMUSGSMIBARL,FilterB02µMUWMSFS,
