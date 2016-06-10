@@ -20,13 +20,9 @@ rm(dfOpt)
 data.ny <- readRDS(file.path(cached.path,"dataNY.rds"))
 data.opt.ny <- filter(data.opt, State == "NY")
 
-x <- left_join(data.ny, data.opt.ny, by=c("FieldID"="USGSFieldID"))
+data.ny.merge <- left_join(data.ny, select(data.opt.ny, -FieldID), 
+                           by=c("FieldID"="USGSFieldID"))
 
-# data.ny.merge <- mergeNearest(left = data.ny, right = data.opt.ny, 
-#                               dates.left = "SAMPLE_START_DT",
-#                               all.left = FALSE,
-#                               dates.right = "startDateTime",
-#                               max.diff = "1 days")
 # All the optics data doesn't have a match...
 # data.checks.ny <- data.ny.merge[,c("SAMPLE_START_DT","startDateTime", "FieldID.left", "FieldID.right")]
 
@@ -43,15 +39,11 @@ data.mi.merge <- mergeNearest(left = data.mi, right = data.opt.mi,
                               dates.right = "startDateTime",
                               max.diff = "1 days")
 
-data.mi.merge <- left_join(data.mi.merge, 
-               select(data.mi.opt.field,
-                      SAMPLE_START_DT,FieldID,
-                      UVch1,UVch2,UVch3,
-                      CADeepUVch1, CADeepUVch2, CADeepUVch2,
-                      C7PeakT,C7PeakC), 
-               by=c("USGSFieldID"="FieldID")) %>%
-  rename(SAMPLE_START_DT=SAMPLE_START_DT.x) %>%
-  select(-SAMPLE_START_DT.y)
+# data.mi.merge <- left_join(data.mi, select(data.opt.mi, -FieldID), 
+#                            by=c("SAMPLE_START_DT"="startDateTime"))
+
+data.mi.merge <- left_join(data.mi.merge, select(data.mi.opt.field, -SAMPLE_START_DT), 
+               by=c("USGSFieldID"="FieldID"))
 
 data.mi.merge <- data.mi.merge[, names(data.ny.merge)]
 
@@ -61,7 +53,7 @@ data.mi.merge <- data.mi.merge[, names(data.ny.merge)]
 data.wi <- readRDS(file.path(cached.path,"dataWI.rds"))
 data.opt.wi <- filter(data.opt, State == "WI")
 
-data.wi.merge <- right_join(data.wi, data.opt.wi,
+data.wi.merge <- right_join(data.wi, select(data.opt.wi, -FieldID),
                            by=c("FieldID"="USGSFieldID"))
                                 # "SAMPLE_START_DT"="startDateTime"))
 

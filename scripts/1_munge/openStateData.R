@@ -48,6 +48,7 @@ saveRDS(data.wi.field.all, file.path(cached.path,"dataWI_allData.rds"))
 ###############################################################
 file.mi <- "GLPF.NWIS.MI.xlsx"
 data.mi <- read_excel(file.path(raw.lab.path,file.mi))
+data.mi$SAMPLE_START_DT <- data.mi$SAMPLE_START_DT+1
 
 data.mi <- rename(data.mi,
                   SiteID = `Station ID`,
