@@ -72,7 +72,11 @@ data.merge.check <- select(data.merge, State, FieldID, fieldID, FilterA04µMUSGS
 saveRDS(data.merge.check, file.path(cached.path,"mergeCheck.rds"))
 
 merged.data <- data.merge[,names(data.merge)[!(names(data.merge) %in% names(data.merge.check))]]
-merged.data <- cbind(data.merge[,c("SAMPLE_START_DT","USGSFieldID","USGSNWISStationIDifapplicable")], merged.data) %>%
+
+merged.data <- cbind(data.merge[,c("SAMPLE_START_DT","fieldID","State",
+                                   "USGSNWISStationIDifapplicable","hydroCondition",
+                                   "VirusAutosampleorSewerGrab")], 
+                     merged.data) %>%
   rename(SiteID=USGSNWISStationIDifapplicable,
          pdate = SAMPLE_START_DT)
 
@@ -82,15 +86,33 @@ saveRDS(merged.data, file.path(cached.path,"mergedData.rds"))
 write.csv(merged.data, file.path(cached.path,"mergedData.csv"), row.names = FALSE)
 write.csv(data.merge.check, file.path(cached.path,"mergedDataSupplement.csv"), row.names = FALSE)
 
-# data.table solution...look into more in future:
-# From: http://stackoverflow.com/questions/23342647/how-to-match-by-nearest-date-from-two-data-frames
-# dt.mi <- setDT(data.mi)
-# dt.opt.mi <- setDT(data.opt.mi)
-# 
-# dt.mi[, date.sample := SAMPLE_START_DT]  ## create a duplicate of 'date1'
-# dt.opt.mi[, date.opt := startDateTime]  ## create a duplicate of 'date1'
-# setkey(dt.mi, date.sample)    ## set the column to perform the join on
-# setkey(dt.opt.mi, date.opt)    ## same as above
-# 
-# ans <- dt.mi[dt.opt.mi, roll=Inf] ## perform rolling join
+#############################
+data.ny.merge.full <- filter(merged.data, State == "WI")
 
+write.csv(data.ny.merge.full, file.path(cached.path,"dataNYmergeFull.csv"), row.names = FALSE)
+saveRDS(data.ny.merge.full, file.path(cached.path,"dataNYmergeFull.rds"))
+
+#############################
+data.wi.full <- readRDS(file.path(cached.path,"dataWI_allData.rds"))
+
+merged.data.wi <- filter(merged.data, State == "WI") %>%
+  select(-WT,-DO,-Turb,-SC,-pH,-UVch1,-UVch2,-UVch3)
+
+data.wi.merge.full <- left_join(data.wi.full, merged.data.wi, 
+                                 by=c("FieldID"="fieldID"))
+
+write.csv(data.wi.merge.full, file.path(cached.path,"dataWImergeFull.csv"), row.names = FALSE)
+saveRDS(data.wi.merge.full, file.path(cached.path,"dataWImergeFull.rds"))
+
+
+#############################
+data.mi.full <- readRDS(file.path(cached.path,"dataMI_allData.rds"))
+
+merged.data.mi <- filter(merged.data, State == "MI") %>%
+  select(-WT,-DO,-Turb,-SC,-pH,-UVch1,-UVch2,-UVch3)
+
+data.mi.merge.full <- left_join(data.mi.full, merged.data.mi, 
+                                by=c("SAMPLE_START_DT"="pdate", "SiteID"))
+
+write.csv(data.mi.merge.full, file.path(cached.path,"dataMImergeFull.csv"), row.names = FALSE)
+saveRDS(data.mi.merge.full, file.path(cached.path,"dataMImergeFull.rds"))
