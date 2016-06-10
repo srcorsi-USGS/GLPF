@@ -17,9 +17,7 @@ file.wi <- "KK_Compiled_Sensor Data20160513.csv"
 data.wi <- setDF(fread(file.path(raw.lab.path,file.wi)))
 
 data.wi$SAMPLE_START_DT <- data.wi$SampleCollectionDateTime
-# data.wi$SAMPLE_START_DT[is.na(data.wi$SAMPLE_START_DT) | data.wi$SAMPLE_START_DT == ""] <- data.wi$TIMESTAMP[is.na(data.wi$SAMPLE_START_DT) | data.wi$SAMPLE_START_DT == ""]
 data.wi$SAMPLE_START_DT <- parse_date_time(data.wi$SAMPLE_START_DT, orders = c("mdY HS", "Ymd H:M:S"))
-# data.wi$SAMPLE_START_DT[is.na(data.wi$SAMPLE_START_DT)] <- parse_date_time(paste(data.wi$Sample_Collection_Date[is.na(data.wi$SAMPLE_START_DT)], data.wi$Sensor_Start_Time[is.na(data.wi$SAMPLE_START_DT)]), orders = c("mdY H:M:S", "mdY"))
 
 data.wi.field.opts <- rename(data.wi, 
                          WT = Temp,
@@ -66,17 +64,20 @@ data.mi.wide <- setDT(data.mi) %>%
           PARM_NM, value.var = "RESULT_VA") %>%
   setDF()
 
-data.mi.wide <- rename(data.mi.wide, 
+data.mi.wide.all <- rename(data.mi.wide, 
                        Station_Name=STATION_NM,
                        FieldID=fieldID) %>%
-  mutate(SC = `Specific cond at 25C`,
+  rename(SC = `Specific cond at 25C`,
          WT = `Temperature, water`,
-         Turb = `Turbidity, Nephelom`,#we might need to merge Turbidity, NephRatio...
-         DO = `Dissolved oxygen`,
-         state = "MI") %>%
-  select(SAMPLE_START_DT, FieldID, state, WT, DO, Turb, SC, pH) 
+         DO = `Dissolved oxygen`) %>%
+  mutate(Turb = ifelse(!is.na(`Turbidity, Nephelom`),`Turbidity, Nephelom`,`Turbidity, NephRatio`),
+         state = "MI")
+
+data.mi.wide <- select(data.mi.wide.all, SAMPLE_START_DT, FieldID, state, WT, DO, Turb, SC, pH) 
 
 saveRDS(data.mi.wide, file.path(cached.path,"dataMI.rds"))
+saveRDS(data.mi.wide.all, file.path(cached.path,"dataMI_allData.rds"))
+
 
 data.mi.opt.field <- data.wi.field.opts %>%
   filter(state == "MI")
