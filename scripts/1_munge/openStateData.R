@@ -21,20 +21,29 @@ data.wi$SAMPLE_START_DT <- data.wi$SampleCollectionDateTime
 data.wi$SAMPLE_START_DT <- parse_date_time(data.wi$SAMPLE_START_DT, orders = c("mdY HS", "Ymd H:M:S"))
 # data.wi$SAMPLE_START_DT[is.na(data.wi$SAMPLE_START_DT)] <- parse_date_time(paste(data.wi$Sample_Collection_Date[is.na(data.wi$SAMPLE_START_DT)], data.wi$Sensor_Start_Time[is.na(data.wi$SAMPLE_START_DT)]), orders = c("mdY H:M:S", "mdY"))
 
-data.wi.munged <- rename(data.wi, 
+data.wi.field.opts <- rename(data.wi, 
                          WT = Temp,
                          FieldID = Station_Name) %>%
-  mutate(DO = as.numeric(NA)) %>%
-  select(SAMPLE_START_DT, FieldID, state, WT, DO, Turb, SC, pH,
-         UVch1,UVch2,UVch3,
-         CADeepUVch1, CADeepUVch2, CADeepUVch2,
-         C7PeakT,C7PeakC) %>%
-  filter(!(FieldID %in% c("BLK-DI","FLD-BLK","EMPTY"))) 
+  select(SAMPLE_START_DT, FieldID, state,
+         UVch1,UVch2,UVch3) %>%
+  filter(!(FieldID %in% c("BLK-DI","BLANK","FLD-BLK","FLDBLK","WWKKSFLBBLK","EMPTY","WWKKSFblk-02","WWFBLK-11",
+                          "TEA","TEA1","TEA2","TEA3","Q","Q1","Q2","Q3",
+                          "GREEN","BLUE","YELLOW","BLUE2",
+                          "DI","DI1","DI2","DI3","DI2A",
+                          "WWRCTL-S02-BLANK","RCTPS01BLANK","WWRCTL-03-BLANK","WWRCTP-D02-BLANK",
+                          "WWRCTPS70-BLANK","VAN LARE WWTP","RCTPS02-BLANK")))
 
-data.wi.field <- data.wi.munged %>%
-  filter(state == "WI")
+data.wi.field.all <- rename(data.wi, 
+                        WT = Temp,
+                        FieldID = Station_Name) %>% #this is to be merged with the other states
+  filter(state == "WI") %>%
+  filter(Filtered == "0") %>%
+  mutate(DO = as.numeric(NA)) 
+
+data.wi.field <- select(data.wi.field.all, SAMPLE_START_DT, FieldID, state, WT, DO, Turb, SC, pH)
 
 saveRDS(data.wi.field, file.path(cached.path,"dataWI.rds"))
+saveRDS(data.wi.field.all, file.path(cached.path,"dataWI_allData.rds"))
 
 ###############################################################
 # MI:
@@ -62,14 +71,14 @@ data.mi.wide <- rename(data.mi.wide,
                        FieldID=fieldID) %>%
   mutate(SC = `Specific cond at 25C`,
          WT = `Temperature, water`,
-         Turb = `Turbidity, Nephelom`,
+         Turb = `Turbidity, Nephelom`,#we might need to merge Turbidity, NephRatio...
          DO = `Dissolved oxygen`,
          state = "MI") %>%
   select(SAMPLE_START_DT, FieldID, state, WT, DO, Turb, SC, pH) 
 
 saveRDS(data.mi.wide, file.path(cached.path,"dataMI.rds"))
 
-data.mi.opt.field <- data.wi.munged %>%
+data.mi.opt.field <- data.wi.field.opts %>%
   filter(state == "MI")
 
 saveRDS(data.mi.opt.field, file.path(cached.path,"dataMIfieldOpts.rds"))
@@ -89,7 +98,7 @@ data.ny <- rename(data.ny,
                   DO = D.O.,
                   Turb = TB)
 
-data.ny.opt.field <- data.wi.munged %>%
+data.ny.opt.field <- data.wi.field.opts %>%
   filter(state == "NY") 
 
 data.ny.join <- select(data.ny, SAMPLE_START_DT, FieldID, state, WT, DO, Turb, SC, pH) 
@@ -98,15 +107,8 @@ data.ny.join$FieldID[data.ny.join$FieldID =="WWRCTE"] <- "WWRCTE-1or2"
 data.ny.join$FieldID[data.ny.join$FieldID =="WWRCTJ"] <- "WWRCTJ-1or2"
 data.ny.join$FieldID[nchar(data.ny.join$FieldID) == 6] <- paste0(data.ny.join$FieldID[nchar(data.ny.join$FieldID) == 6],"-1")
 
-data.ny.munged <- left_join(data.ny.join, 
-                            select(data.ny.opt.field,
-                                   SAMPLE_START_DT,FieldID,
-                                   UVch1,UVch2,UVch3,
-                                   CADeepUVch1, CADeepUVch2, CADeepUVch2,
-                                   C7PeakT,C7PeakC), 
-                            by="FieldID") %>%
-                  select(-SAMPLE_START_DT.y) %>%
-                  rename(SAMPLE_START_DT=SAMPLE_START_DT.x)
+data.ny.munged <- left_join(data.ny.join, select(data.ny.opt.field, -SAMPLE_START_DT), 
+                            by=c("FieldID","state")) 
 
 saveRDS(data.ny.munged, file.path(cached.path,"dataNY.rds"))
 

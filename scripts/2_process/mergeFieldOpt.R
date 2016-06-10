@@ -20,11 +20,13 @@ rm(dfOpt)
 data.ny <- readRDS(file.path(cached.path,"dataNY.rds"))
 data.opt.ny <- filter(data.opt, State == "NY")
 
-data.ny.merge <- mergeNearest(left = data.ny, right = data.opt.ny, 
-                              dates.left = "SAMPLE_START_DT",
-                              all.left = FALSE,
-                              dates.right = "startDateTime",
-                              max.diff = "1 days")
+x <- left_join(data.ny, data.opt.ny, by=c("FieldID"="USGSFieldID"))
+
+# data.ny.merge <- mergeNearest(left = data.ny, right = data.opt.ny, 
+#                               dates.left = "SAMPLE_START_DT",
+#                               all.left = FALSE,
+#                               dates.right = "startDateTime",
+#                               max.diff = "1 days")
 # All the optics data doesn't have a match...
 # data.checks.ny <- data.ny.merge[,c("SAMPLE_START_DT","startDateTime", "FieldID.left", "FieldID.right")]
 
@@ -93,7 +95,9 @@ merged.data <- cbind(data.merge[,c("SAMPLE_START_DT","USGSFieldID","USGSNWISStat
 
 
 saveRDS(merged.data, file.path(cached.path,"mergedData.rds"))
+
 write.csv(merged.data, file.path(cached.path,"mergedData.csv"), row.names = FALSE)
+write.csv(data.merge.check, file.path(cached.path,"mergedDataSupplement.csv"), row.names = FALSE)
 
 # data.table solution...look into more in future:
 # From: http://stackoverflow.com/questions/23342647/how-to-match-by-nearest-date-from-two-data-frames
