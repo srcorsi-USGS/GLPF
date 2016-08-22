@@ -11,6 +11,7 @@ load(file=file.path(cached.path,'GLRI01-04-16_mergedBact.RData'))
 load(file=file.path(cached.path,'glpfBact2016-06-02.Rdata'))
 glriNames <- setDF(fread(file.path(raw.path,'glriNames.csv')))
 
+# GLRI optics:
 load(file.path(cached.path,'GLRIWWOptFlAbsVectorized.RData'))
 dfabsGLRI <- dfabs
 dfflGLRI <- dffl
@@ -19,9 +20,16 @@ rm(dffl)
 rm(dfabs)
 
 #Additional data is available from spring/summer 2016 for this that needs to be appended
-load(file.path(cached.path,'GLPFWWOptFlAbsVectorized12312015.RData'))
-dfabsGLPF <- dfabs
-dfflGLPF <- dffl
+dfabsGLPF <- setDF(fread(file.path(raw.path,"optics","Abs.csv")))
+names(dfabsGLPF)[1] <- "nm"
+dfflGLPF <- setDF(fread(file.path(raw.path,"optics","Fl.csv")))
+names(dfflGLPF)[1] <- "exem"
+
+
+#Additional data is available from spring/summer 2016 for this that needs to be appended
+# load(file.path(cached.path,'GLPFWWOptFlAbsVectorized12312015.RData'))
+# dfabsGLPF <- dfabs
+# dfflGLPF <- dffl
 
 ################################################################
 dfglri <- dfOpt
@@ -76,18 +84,15 @@ saveRDS(df,file.path(cached.path,'glriglpf.rds'))
 # Combine the fluorescence and absorbance results for GLRI and GLPF
 dfabsGLPF$wv == dfabsGLRI$nm
 
-dfabs <- merge(dfabsGLPF,dfabsGLRI,by.x='wv',by.y='nm')
+dfabs <- merge(dfabsGLPF,dfabsGLRI,by='nm')
+dfflGLPF$exem <- gsub(" ","", dfflGLPF$exem)
+dffl  <- bind_cols(dfflGLPF,dfflGLRI)
+dffl  <- dffl[,-which(names(dffl) == "exem")[-1]]
 
-names(dfflGLPF)[1] <- names(dfflGLRI)[1]
 
-### Merging attempts do not work!! ###
-# dffl <- merge(dfflGLPF,dfflGLRI,by.x=names(dfflGLPF)[1],by.y=names(dfflGLRI)[1])
-# 
-# dffl <- merge(dfflGLPF,dfflGLRI)
-# dffl <- inner_join(x = dfflGLPF,y=dfflGLRI,by = names(dfflGLRI)[1])
+# save(dfabs,dffl,file=file.path(cached.path,'GLPFGLRIVectorized.Rdata'))
+saveRDS(dfabs, file = file.path(cached.path, "dfabs.rds"))
+saveRDS(dffl, file = file.path(cached.path, "dffl.rds"))
 
-dffl <- cbind(dfflGLPF,dfflGLRI[,-1])
-
-save(dfabs,dffl,file=file.path(cached.path,'GLPFGLRIVectorized.Rdata'))
-sum(dfflGLPF$exem !=dfflGLRI$exem)
+# sum(dfflGLPF$exem !=dfflGLRI$exem)
 

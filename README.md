@@ -15,6 +15,7 @@ All files are relative to the "scripts" folder:
 3. `2_process`
   * "mergeFieldOpt.R" grabs
   * "mergeTrackingBacteriaData.R" grabs raw data from "raw_data/tracking" and "raw_data/optics" folders, merges bacteria results with DOC and TDN
+  * "mergeGLPF_GLRI" merges GLPF and GLRI abs and fl data.
 
 ##Disclaimer
 This software is in the public domain because it contains materials that originally came from the U.S. Geological Survey, an agency of the United States Department of Interior. For more information, see the [official USGS copyright policy](http://www.usgs.gov/visual-id/credit_usgs.html#copyright/ "official USGS copyright policy")
