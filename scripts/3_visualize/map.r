@@ -41,7 +41,7 @@ MapLineSizes<-c("Stream"=3,
                 "Sanitary"=1,
                 "Storm"=1)
 
-cached.path <- "cached_data"
+cached.path <- "cached_data/mapping_cache"
 cached.figures <- "cached_figures"
 
 ##############

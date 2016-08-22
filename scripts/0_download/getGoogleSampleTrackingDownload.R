@@ -74,3 +74,7 @@ names(df) <- gsub('\\?','',names(df))
 
 saveRDS(df, file.path(raw.path,"tracking.rds"))
 
+###################
+saveRDS(dfQA,file=file.path(raw.path,'glpfQA.rds'))
+saveRDS(dfWW,file=file.path(raw.path,'glpfWW.rds'))
+saveRDS(dfAuto,file=file.path(raw.path,'glpfAuto.rds'))

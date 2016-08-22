@@ -6,12 +6,15 @@ We may add a `make` or `remake` configuration in the future, but currently, the 
 All files are relative to the "scripts" folder:
 
 1. `0_download`:
-  "getGoogleSampleTracking.R" grabs tracking form data from google doc. Saves data to ...
+  "getGoogleSampleTrackingDownload.R" grabs tracking form data from google doc. Saved data to raw_data/tracking
   
 2. `1_munge`
-  * "openStateData.R" grabs raw data from "raw" folder, puts it into "cache" folder
   * "openMapData.R" grabs raw data from "raw" folder, puts it into "cache" folder. Some bigger shapefiles are only on the "Projects" directory
-  * "openGoogleData.R"
+  * "openTrackingData.R" grabs data from "raw_data/tracking" and "raw_data/optics" saves merged bacteria results with DOC and TDN
+  
+3. `2_process`
+  * "mergeFieldOpt.R" grabs
+  * "mergeTrackingBacteriaData.R" grabs raw data from "raw_data/tracking" and "raw_data/optics" folders, merges bacteria results with DOC and TDN
 
 ##Disclaimer
 This software is in the public domain because it contains materials that originally came from the U.S. Geological Survey, an agency of the United States Department of Interior. For more information, see the [official USGS copyright policy](http://www.usgs.gov/visual-id/credit_usgs.html#copyright/ "official USGS copyright policy")

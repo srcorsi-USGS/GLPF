@@ -11,10 +11,12 @@ cached.path <- "cached_data"
 ###############################################################
 # WI:
 ###############################################################
-file.wi <- "KK_Compiled_Sensor Data20160513.csv"
+file.wi <- "KK_Compiled_Sensor Data20160623.csv"
 data.wi <- setDF(fread(file.path(raw.lab.path,file.wi)))
 
 data.wi$SAMPLE_START_DT <- data.wi$SampleCollectionDateTime
+data.wi$SAMPLE_START_DT[is.na(data.wi$SAMPLE_START_DT)] <- data.wi$TIMESTAMP[is.na(data.wi$SAMPLE_START_DT)]
+data.wi$SAMPLE_START_DT[!is.na(data.wi$SAMPLE_START_DT) & data.wi$SAMPLE_START_DT == ""] <- data.wi$TIMESTAMP[!is.na(data.wi$SAMPLE_START_DT) & data.wi$SAMPLE_START_DT == ""]
 data.wi$SAMPLE_START_DT <- parse_date_time(data.wi$SAMPLE_START_DT, orders = c("mdY HM", "Ymd H:M:S"))
 data.wi$SAMPLE_START_DT <- as.POSIXct(round(data.wi$SAMPLE_START_DT, "min"))
   
@@ -44,6 +46,7 @@ saveRDS(filter(data.wi.field.opts.full, state == "WI"), file.path(cached.path,"d
 ###############################################################
 file.mi <- "GLPF.NWIS.MI.xlsx"
 data.mi <- read_excel(file.path(raw.lab.path,file.mi))
+
 data.mi$SAMPLE_START_DT <- as.POSIXct(round(data.mi$SAMPLE_START_DT,"min"))
 
 data.mi <- rename(data.mi,
@@ -71,6 +74,30 @@ data.mi.wide.all <- rename(data.mi.wide,
 
 data.mi.wide <- select(data.mi.wide.all, SAMPLE_START_DT, FieldID, WT, DO, Turb, SC, pH) 
 
+file.mi.new <- "June2016PhysicalParameters_GLPF.xlsx"
+data.mi.new <- read_excel(file.path(raw.lab.path,file.mi.new))
+
+data.mi.new.cleaned <- data.mi.new %>%
+  rename(SC = `SpCond (00095)`,
+         WT = `Temp, Water (00010)`,
+         DO = `DO (00300)`,
+         Turb = `Turbidity (63676)`,
+         pH = `pH (00400)`,
+         SAMPLE_START_DT = `Date/Time`,
+         `Temperature, air`= `Temp, Air (00020)`,
+         `E coli, DSTM, water` = `E Coli (50468)`,
+         `Air pressure` = `Barometric Pressure (00025)`,
+         `Total coliforms, DSTM, water` = `Total Coliforms (50569)`,
+         Station_Name=`Station Name`) %>%
+  filter(`Sample Code` == 9) %>%
+  mutate(`Total coliforms, DSTM, water` = as.numeric(`Total coliforms, DSTM, water`),
+         `E coli, DSTM, water` = as.numeric(`E coli, DSTM, water`),
+         `Total coliforms, DSTM, water REMARK` = ifelse(is.na(`Total coliforms, DSTM, water`), "<",""))
+  
+data.mi.wide <- bind_rows(data.mi.wide, 
+                          select(data.mi.new.cleaned, SAMPLE_START_DT, FieldID, WT, DO, Turb, SC, pH))
+  
+data.mi.wide.all <- bind_rows(data.mi.wide.all, data.mi.new.cleaned)
 saveRDS(data.mi.wide, file.path(cached.path,"dataMI.rds"))
 saveRDS(data.mi.wide.all, file.path(cached.path,"dataMI_allData.rds"))
 
@@ -84,7 +111,7 @@ saveRDS(data.mi.opt.field, file.path(cached.path,"dataMIfieldOpts.rds"))
 ###############################################################
 # NY:
 ###############################################################
-file.ny <- "NY_CHEMICAL_PARAMETER_DATA.xlsx"
+file.ny <- "CHEMICAL_PARAMETER_DATA.xlsx"
 data.ny <- read_excel(file.path(raw.lab.path,file.ny), na = "X")
 
 data.ny[,4:8] <- sapply(data.ny[,4:8], function(x) as.numeric(gsub(",","", x)))

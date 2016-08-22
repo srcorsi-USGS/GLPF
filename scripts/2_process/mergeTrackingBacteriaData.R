@@ -2,9 +2,11 @@ library(dplyr)
 
 #Raw data folder:
 raw.track.path <- "raw_data/tracking"
+raw.optics.path <- "raw_data/optics"
 cached.path <- "cached_data"
 
 df <- readRDS(file.path(raw.track.path,"tracking.rds" ))
+dfglpfSummary <- read.csv(file.path(raw.optics.path,"GLPF_Summary.csv"),stringsAsFactors = FALSE)
 
 df$Site<-substr(df$FilterB02µMUWMSFS,1,nchar(df$FilterB02µMUWMSFS)-3)
 
@@ -51,7 +53,7 @@ df$plotCol2 <- plotCol2[df$State]
 ## Add DOC and nutrient data     ###
 ####################################
 #Read original summary data from CA
-dfglpfSummary <- read.csv(paste('../CA/',latestGLPFOptSummary,sep=''),stringsAsFactors = FALSE)
+
 dfglpfDOC <- dfglpfSummary[,c('Grnumber','DOCResult','TDNResult')]
 dfglpfDOC$project <- 'glpf'
 dfglpfDOC <- dfglpfDOC[which(dfglpfDOC$Grnumber %in% df$CAGRnumber),]
@@ -62,7 +64,6 @@ df <- merge(df,dfglpfDOC,by.x='CAGRnumber',by.y='Grnumber',all=TRUE)
 # Save Rdata file
 
 saveRDS(df,file=file.path(cached.path,'glpfBact.rds'))
-saveRDS(dfQA,file=file.path(cached.path,'glpfQA.rds'))
-saveRDS(dfWW,file=file.path(cached.path,'glpfWW.rds'))
-saveRDS(dfAuto,file=file.path(cached.path,'glpfAuto.rds'))
+
+
 
