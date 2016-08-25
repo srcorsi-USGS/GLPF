@@ -1,17 +1,13 @@
 library(googlesheets)
 library(dplyr)
 
-raw.path <- "cached_data/tracking"
-# setwd("M:/QW Monitoring Team/GLPF/Data/R")
+cached.path <- "cached_data"
 # Make sure Bison Connect is your default, and log out for good measure any personal gmail
 
-
-getGoogleData <- function(raw.path){
+getGoogleData <- function(cached.path){
   
   token <- gs_auth(cache = FALSE)
   my_sheets <- gs_ls()
-  
-  # latestGLPFOptSummary <- 'GLPF_123115Summary.csv'
   
   glpfTitle <- gs_title("GLPF sample tracking form.xlsx")
   
@@ -75,12 +71,12 @@ getGoogleData <- function(raw.path){
   names(df) <- gsub('\\.','',names(df))
   names(df) <- gsub('\\?','',names(df))
   
-  saveRDS(df, file.path(raw.path,"tracking.rds"))
+  saveRDS(df, file.path(cached.path,"tracking","tracking.rds"))
   
   ###################
-  saveRDS(dfQA,file=file.path(raw.path,'glpfQA.rds'))
-  saveRDS(dfWW,file=file.path(raw.path,'glpfWW.rds'))
-  saveRDS(dfAuto,file=file.path(raw.path,'glpfAuto.rds'))
+  saveRDS(dfQA,file=file.path(cached.path,"tracking",'glpfQA.rds'))
+  saveRDS(dfWW,file=file.path(cached.path,"tracking",'glpfWW.rds'))
+  saveRDS(dfAuto,file=file.path(cached.path,"tracking",'glpfAuto.rds'))
 }
 
-getGoogleData(raw.path)
+getGoogleData(cached.path)

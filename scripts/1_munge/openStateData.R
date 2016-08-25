@@ -5,15 +5,15 @@ library(dataRetrieval)
 library(lubridate)
 
 #Raw data folder:
-raw.lab.path <- "raw_data/field_data"
-cached.path <- "cached_data/state"
+raw.path <- "raw_data"
+cached.path <- "cached_data"
 
-openState <- function(raw.lab.path, cached.path){
+openState <- function(raw.path, cached.path){
   ###############################################################
   # WI:
   ###############################################################
   file.wi <- "KK_Compiled_Sensor Data20160623.csv"
-  data.wi <- setDF(fread(file.path(raw.lab.path,file.wi)))
+  data.wi <- setDF(fread(file.path(raw.path,"field_data",file.wi)))
   
   data.wi$SAMPLE_START_DT <- data.wi$SampleCollectionDateTime
   data.wi$SAMPLE_START_DT[is.na(data.wi$SAMPLE_START_DT)] <- data.wi$TIMESTAMP[is.na(data.wi$SAMPLE_START_DT)]
@@ -39,14 +39,14 @@ openState <- function(raw.lab.path, cached.path){
   data.wi.field.opts <- select(data.wi.field.opts.full, FieldID, state, UVch1,UVch2,UVch3)
   data.wi.field <- select(data.wi.field.all, SAMPLE_START_DT, FieldID, WT, DO, Turb, SC, pH, UVch1, UVch2, UVch3)
   
-  saveRDS(data.wi.field, file.path(cached.path,"dataWI.rds"))
-  saveRDS(filter(data.wi.field.opts.full, state == "WI"), file.path(cached.path,"dataWI_allData.rds"))
+  saveRDS(data.wi.field, file.path(cached.path,"state","dataWI.rds"))
+  saveRDS(filter(data.wi.field.opts.full, state == "WI"), file.path(cached.path,"state","dataWI_allData.rds"))
   
   ###############################################################
   # MI:
   ###############################################################
   file.mi <- "GLPF.NWIS.MI.xlsx"
-  data.mi <- read_excel(file.path(raw.lab.path,file.mi))
+  data.mi <- read_excel(file.path(raw.path,"field_data",file.mi))
   
   data.mi$SAMPLE_START_DT <- as.POSIXct(round(data.mi$SAMPLE_START_DT,"min"))
   
@@ -73,7 +73,7 @@ openState <- function(raw.lab.path, cached.path){
   data.mi.wide <- select(data.mi.wide.all, SAMPLE_START_DT, FieldID, WT, DO, Turb, SC, pH) 
   
   file.mi.new <- "June2016PhysicalParameters_GLPF.xlsx"
-  data.mi.new <- read_excel(file.path(raw.lab.path,file.mi.new))
+  data.mi.new <- read_excel(file.path(raw.path,"field_data",file.mi.new))
   
   data.mi.new.cleaned <- data.mi.new %>%
     rename(SC = `SpCond (00095)`,
@@ -96,14 +96,14 @@ openState <- function(raw.lab.path, cached.path){
                             select(data.mi.new.cleaned, SAMPLE_START_DT, FieldID, WT, DO, Turb, SC, pH))
     
   data.mi.wide.all <- bind_rows(data.mi.wide.all, data.mi.new.cleaned)
-  saveRDS(data.mi.wide, file.path(cached.path,"dataMI.rds"))
-  saveRDS(data.mi.wide.all, file.path(cached.path,"dataMI_allData.rds"))
+  saveRDS(data.mi.wide, file.path(cached.path,"state","dataMI.rds"))
+  saveRDS(data.mi.wide.all, file.path(cached.path,"state","dataMI_allData.rds"))
   
   ###############################################################
   # NY:
   ###############################################################
   file.ny <- "CHEMICAL_PARAMETER_DATA.xlsx"
-  data.ny <- read_excel(file.path(raw.lab.path,file.ny), na = "X")
+  data.ny <- read_excel(file.path(raw.path,"field_data",file.ny), na = "X")
   
   data.ny[,4:8] <- sapply(data.ny[,4:8], function(x) as.numeric(gsub(",","", x)))
   
@@ -126,10 +126,10 @@ openState <- function(raw.lab.path, cached.path){
   data.ny.munged <- left_join(data.ny.join, data.ny.opt.field, 
                               by=c("FieldID")) 
   
-  saveRDS(data.ny.munged, file.path(cached.path,"dataNY.rds"))
+  saveRDS(data.ny.munged, file.path(cached.path,"state","dataNY.rds"))
   # NY didn't take any extra data:
-  saveRDS(data.ny.munged, file.path(cached.path,"dataNY_allData.rds"))
+  saveRDS(data.ny.munged, file.path(cached.path,"state","dataNY_allData.rds"))
 }
 
-openState(raw.lab.path, cached.path)
+openState(raw.path, cached.path)
 
