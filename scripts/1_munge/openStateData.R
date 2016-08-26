@@ -26,7 +26,7 @@ openState <- function(raw.path, cached.path){
                            FieldID = Station_Name) %>%
     filter(!(FieldID %in% c("BLK-DI","BLANK","FLD-BLK","FLDBLK","WWKKSFLBBLK","EMPTY","WWKKSFblk-02","WWFBLK-11",
                             "TEA","TEA1","TEA2","TEA3","Q","Q1","Q2","Q3",
-                            "GREEN","BLUE","YELLOW","BLUE2",
+                            "GREEN","BLUE","YELLOW","BLUE2","WWKKSFLD-bk-04","WWKKSQA-01",
                             "DI","DI1","DI2","DI3","DI2A",
                             "WWRCTL-S02-BLANK","RCTPS01BLANK","WWRCTL-03-BLANK","WWRCTP-D02-BLANK",
                             "WWRCTPS70-BLANK","VAN LARE WWTP","RCTPS02-BLANK")))
