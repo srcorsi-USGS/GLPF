@@ -14,7 +14,8 @@ mergeTrackingBact <- function(raw.path, cached.path){
 
   dfall <- left_join(dfall, select(dfOpt, CAGRnumber, DOCResult, TDNResult), by="CAGRnumber")
   
-  "All GLRI samples were event samples, so just use that....Steve 8/26/16"
+  # "All GLRI samples were event samples, so just use that....Steve 8/26/16"
+  # dfall == GLRI
   dfall$Comments[dfall$Comments == ""] <- "Event Grab"
   dfall$State <- gsub(' ','',dfall$State)
   dfall$pdate <- as.POSIXct(dfall$Start.date.time..mm.dd.yy.hh.mm.,format='%m/%d/%Y %H:%M')
