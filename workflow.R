@@ -2,8 +2,6 @@
 source("scripts/0_download/getGoogleSampleTrackingDownload.R")
 #' @examples 
 #' tracking <- readRDS(file.path("cached_data","tracking","tracking.rds"))
-#' QA <- readRDS(file.path("cached_data","tracking","glpfQA.rds"))
-#' WW <- readRDS(file.path("cached_data","tracking","glpfWW.rds"))
 
 # Open state data:
 source("scripts/1_munge/openStateData.R")
@@ -12,7 +10,6 @@ source("scripts/1_munge/openStateData.R")
 #' data.wi <- readRDS(file.path("cached_data","state","dataWI.rds"))
 #' data.ny <- readRDS(file.path("cached_data","state","dataNY.rds"))
 # total rows 471, which includes blanks and QAs
-
 
 # Merge GLRI/GLPF optic fluorescence/absorbance data:
 # GLRIWWOptFlAbsVectorized.RData
@@ -32,20 +29,12 @@ source("scripts/2_process/mergeTrackingBacteriaData.R", encoding = 'UTF-8')
 
 # Merge field and opt data
 source("scripts/2_process/mergeFieldOpt.R", encoding = 'UTF-8')
-mergedData <- readRDS(file.path("cached_data","merged","mergedData.rds"))
+#' @examples
+#'mergedData <- readRDS(file.path("cached_data","merged","mergedData.rds"))
 
-cached.path <- 'cached_data'
-
-dfabs <- readRDS(file.path(cached.path,"optics","dfabs.rds"))
-dffl <- readRDS(file.path(cached.path,"optics","dffl.rds"))
-
-mergedData <- readRDS(file.path(cached.path,"merged","mergedData.rds"))
-
-dfabs_filtered <- dfabs[,c("nm",unique(mergedData$CAGRnumber))]
-dffl_filtered <- dffl[,c("exem",unique(mergedData$CAGRnumber))]
-
-write.csv(dfabs_filtered, file = file.path(cached.path,"final","dfabs.csv"), row.names = FALSE)
-write.csv(dffl_filtered, file = file.path(cached.path,"final","dffl.csv"), row.names = FALSE)
-write.csv(mergedData, file = file.path(cached.path,"final","mergedData.csv"), row.names = FALSE)
-x <- mergedData[c(which(duplicated(mergedData$CAGRnumber)),which(duplicated(mergedData$CAGRnumber,fromLast = TRUE))),]
+# Separate sanitary, ww, qa, blanks, etc
+source("scripts/2_process/filterData.R", encoding = 'UTF-8')
+#' @examples
+#' mergedData <- setDF(fread(file.path("cached_data","final","mergedData.csv")))
+#' only.data.with.field.data <- mergedData[rowSums(is.na(mergedData[,c("WT","DO","Turb","SC","pH")])) != 5,]
 

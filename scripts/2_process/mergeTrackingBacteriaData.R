@@ -32,7 +32,6 @@ mergeTrackingBact <- function(raw.path, cached.path){
                   Esp2cn100ml = espCN100mL,
                   lachnocn100g = Lachno,
                   bachumcn100g = BacHuman) %>%
-    filter(SampleType9regular2blank7replicate == 9) %>%
     mutate(bachumcn100g = as.character(bachumcn100g),
            lachnocn100g = as.character(lachnocn100g),
            enterocn100g = as.character(enterocn100g),
@@ -78,7 +77,6 @@ mergeTrackingBact <- function(raw.path, cached.path){
   df$hydroCondition <- "Base"
   df$hydroCondition[grep("event",df$Comments, ignore.case = TRUE)] <- "Event"
 
-  df <- filter(df, SampleType9regular2blank7replicate == 9)
   df$eventNum <- 1
   GMTOffset <- ifelse(df$State=='WI',6,5)[is.na(df$pdate)]
 
