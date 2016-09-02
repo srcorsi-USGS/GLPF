@@ -6,21 +6,16 @@ summaryOpticalVariables <- function(cached.path, base.name, SummaryDir){
   dfall <- readRDS(file.path(cached.path, "final", "rds",paste0("summary",base.name,".rds")))
   dfabs <- readRDS(file.path(cached.path, "final", "rds",paste0("dfabs",base.name,".rds")))
   dffl <- readRDS(file.path(cached.path, "final", "rds",paste0("dffl",base.name,".rds")))
-  
-  cleanedNames <- dfall$CAGRnumber[!(dfall$CAGRnumber %in% c("x","N/A"))]
-  dffl <- dffl[,c("exem",cleanedNames)]
-  dfall <- dfall[dfall$CAGRnumber %in% cleanedNames,]
-  dfabs <- dfabs[,c("nm",cleanedNames)]
-    
+
   EEMs3D <- VectorizedTo3DArray(dffl,"exem",grnum = "CAGRnumber")
-  EEMs3D <- EEMs3D[,,cleanedNames]
+
   saveRDS(EEMs3D,file=file.path(cached.path,"final","optic_summary",paste0("EEMs3D",base.name,".rds")))
 
   ##############################################################################################
   # Read summary signals to extract from Fl and abs info
   dfFlSignals <- read.csv(file.path(SummaryDir,"ex_ems_meansCA.csv"),as.is=TRUE)
   dfAbsSignals <- read.csv(file.path(SummaryDir,"abs_wavsCA.csv"),as.is=TRUE)
-  # AbsSignals <- as.numeric(dfAbsSignals[,1])
+  AbsSignals <- as.numeric(dfAbsSignals[,1])
   dfSagSignals <- read.csv(file.path(SummaryDir,"SagWavesCA.csv"),as.is=TRUE)
   ratioSignalsAbs <- read.csv(file.path(SummaryDir,"ratioSignalsAbsCA.csv"),as.is=TRUE)
   ratioSignalsAbs <- ratioSignalsAbs[which(ratioSignalsAbs[2]>0),1]

@@ -5,7 +5,6 @@ cached.path <- "cached_data"
 filterOptics <- function(df, dfabs, dffl, base.name, cached.path){
   
   wwGR <- unique(df$CAGRnumber)
-  wwGR <- wwGR[!(wwGR %in% c("x","N/A"))]
   dfabs_filtered <- dfabs[,names(dfabs) %in% c("nm",wwGR)]
   dffl_filtered <- dffl[,names(dffl) %in% c("exem",wwGR)]
   
@@ -18,6 +17,8 @@ filterOptics <- function(df, dfabs, dffl, base.name, cached.path){
 
 filterData <- function(cached.path){
   df <- readRDS(file.path(cached.path,"merged","mergedData.rds"))
+  
+  df <- df[!(df$CAGRnumber %in% c("x","N/A")),]
   
   dfabs <- readRDS(file.path(cached.path,"optics","dfabs.rds"))
   dffl <- readRDS(file.path(cached.path,"optics","dffl.rds"))
