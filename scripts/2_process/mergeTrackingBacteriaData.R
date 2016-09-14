@@ -46,7 +46,7 @@ mergeTrackingBact <- function(raw.path, cached.path){
   
   df <- full_join(df, dfall)
 
-  df <- select(df, -racoon, -dogcn100ml, -lachno3cn100ml,
+  df <- select(df, -lachno3cn100ml,
                -qpcrBacHumanResults,-qpcrEnterococcusResults,-qpcrLachno2Results,
                -esp, -ipaH, -ipaHcn100ml,-Esp2cn100ml) %>%
     filter(CAGRnumber != "")

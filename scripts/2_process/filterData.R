@@ -15,6 +15,15 @@ filterOptics <- function(df, dfabs, dffl, base.name, cached.path){
   
 }
 
+meta.file <- function(df, base.name){
+  types <- lapply(df,class)
+  types <- unlist(types)
+  metaData <- data.frame(variable = names(types),
+                         dataType = types, stringsAsFactors = FALSE)
+  metaData$description <- ""
+  write.csv(metaData, row.names = FALSE, file = file.path(cached.path,"final",paste0("meta",base.name,".csv")))
+}
+
 filterData <- function(cached.path){
   df <- readRDS(file.path(cached.path,"merged","mergedData.rds"))
   
@@ -30,7 +39,7 @@ filterData <- function(cached.path){
   saveRDS(df_regular, file = file.path(cached.path,"final","rds","summary_noQA.rds"))
   
   filterOptics(df_regular, dfabs, dffl, "_noQA", cached.path)
-  
+  meta.file(df_regular, "_noQA")
   # some day, we may want to separate auto samples:
   # df_auto <- filter(df_regular, VirusAutosampleorSewerGrab == "Autosample") 
   # df_regular <- filter(df_regular, VirusAutosampleorSewerGrab != "Autosample")
@@ -49,11 +58,11 @@ filterData <- function(cached.path){
   saveRDS(df_QA, file = file.path(cached.path,"final","rds","summary_QA.rds"))
 
   filterOptics(df_regular, dfabs, dffl, "_noWW_noQA", cached.path)
-  
   filterOptics(df_WW, dfabs, dffl, "_WW_noQA", cached.path)
-  
   filterOptics(df_QA, dfabs, dffl, "_QA", cached.path)
-
+  meta.file(df_regular, "_noWW_noQA")
+  meta.file(df_WW, "_WW_noQA")
+  meta.file(df_QA, "_QA")
 }
 
 filterData(cached.path)

@@ -29,6 +29,8 @@ getGoogleData <- function(cached.path){
     dfState$lachno.cn.100g <- suppressWarnings(as.character(dfState$lachno.cn.100g))
     dfState$ecoli.cn.100g <- suppressWarnings(as.character(dfState$ecoli.cn.100g))
     
+    dfState <- select(dfState, -racoon.cn.100ml..relative.., -dog.cn.100ml)
+    
     dfState$State <- gsub(' ','',dfState$State)
     
     if(i == 2) {

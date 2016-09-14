@@ -38,10 +38,15 @@ source("scripts/2_process/filterData.R", encoding = 'UTF-8')
 #' mergedData <- readRDS(file.path("cached_data","final","rds","summary_noWW_noQA.rds"))
 #' only.data.with.field.data <- mergedData[rowSums(is.na(mergedData[,c("WT","DO","Turb","SC","pH")])) != 5,]
 
+source("scripts/2_process/categorizeBacteria.R", encoding = 'UTF-8')
+#' @export
+#' mergedData <- readRDS(file.path("cached_data","final","rds","summary_noWW_noQA.rds"))
+
 source("scripts/2_process/summaryOpticalVariables.R", encoding = 'UTF-8')
 #' @examples
-#' dfall <- readRDS(file.path(cached.path,"final","optic_summary",paste0("summary","_noWW_noQA",".rds")))
-#' EEMs3D <- readRDS(file.path(cached.path,"final","optic_summary",paste0("EEMs3D","_noWW_noQA",".rds")))
+#' dfall <- readRDS(file.path("cached_data","final","optic_summary",paste0("summary","_noQA",".rds")))
+#' EEMs3D <- readRDS(file.path("cached_data","final","optic_summary",paste0("EEMs3D","_noWW_noQA",".rds")))
+
 
 source("scripts/3_visualize/summarizeOptics.R", encoding = 'UTF-8')
 #' @examples

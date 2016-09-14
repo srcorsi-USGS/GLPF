@@ -1,6 +1,15 @@
 library(USGSHydroOpt)
 library(dplyr)
 
+meta.file <- function(df, base.name){
+  types <- lapply(df,class)
+  types <- unlist(types)
+  metaData <- data.frame(variable = names(types),
+                         dataType = types, stringsAsFactors = FALSE)
+  metaData$description <- ""
+  write.csv(metaData, row.names = FALSE, file = file.path(cached.path,"final","optic_summary",paste0("meta",base.name,".csv")))
+}
+
 summaryOpticalVariables <- function(cached.path, base.name, SummaryDir){
 
   dfall <- readRDS(file.path(cached.path, "final", "rds",paste0("summary",base.name,".rds")))
@@ -60,7 +69,7 @@ summaryOpticalVariables <- function(cached.path, base.name, SummaryDir){
   dfOpt <- getRatios(dataSummary=dfOpt,sigs=ratioSignalsAbs,grnum="CAGRnumber")
   dfOpt <- getRatios(dataSummary=dfOpt,sigs=ratioSignalsSr,grnum="CAGRnumber")
   dfOpt <- getRatios(dataSummary=dfOpt,sigs=ratioSignalsSniff,grnum="CAGRnumber")
-  dfOpt <- getRatios(dataSummary=dfOpt,sigs=ratioSignalsSniffWetStar,grnum="CAGRnumber")
+  # dfOpt <- getRatios(dataSummary=dfOpt,sigs=ratioSignalsSniffWetStar,grnum="CAGRnumber")
   
   #Compute fraction of summation indices
   dfOpt <- getFrcSum(dataSummary = dfOpt,
@@ -74,8 +83,12 @@ summaryOpticalVariables <- function(cached.path, base.name, SummaryDir){
   dfOpt$USGSFieldID <- dfOpt$FieldID
   dfall$USGSFieldID <- dfOpt$FieldID
   
-  dfOpt <- arrange(dfOpt, USGSFieldID)
-
+  
+  
+  dfOpt <- arrange(dfOpt, USGSFieldID) %>%
+    distinct()
+  
+  meta.file(dfOpt, base.name)
   saveRDS(dfOpt,file=file.path(cached.path,"final","optic_summary",paste0("summary",base.name,".rds")))
   write.csv(dfOpt,file=file.path(cached.path,"final","optic_summary",paste0("summary",base.name,".csv")),row.names=FALSE)
 
