@@ -50,79 +50,89 @@ categorizeBacteria <- function(cached.path, base.name){
                                                                      as.character(bacteria$bacHum_cat[bacteria$how.close == 1]),
                                                                      "MediumBact")))
   
-  bacteria$comboCat[bacteria$how.close == 2] <- ifelse(bacteria$bacHum[bacteria$how.close == 2] > bacteria$lachno[bacteria$how.close == 2], 
+  bacteria$comboCat[bacteria$how.close == 2] <- ifelse(bacteria$bacHum[bacteria$how.close == 2] > bacteria$lachno[bacteria$how.close == 2],
                                                        "HigherBact",
                                                        "HigherLachno")
-  bacteria$comboCat[bacteria$how.close == 3] <- ifelse(bacteria$bacHum[bacteria$how.close == 3] > bacteria$lachno[bacteria$how.close == 3], 
+  bacteria$comboCat[bacteria$how.close == 3] <- ifelse(bacteria$bacHum[bacteria$how.close == 3] > bacteria$lachno[bacteria$how.close == 3],
                                                        "MuchHigherBact",
                                                        "MuchHigherLachno")
-  
-  # bacteria$comboCat[bacteria$how.close == 1 & 
-  #                   bacteria$bacHum_cat  %in% c(5,6) & 
-  #                   bacteria$lachno_cat  %in% c(5,6)] <- "6"
 
-  bacteria$comboCat[bacteria$comboCat == "MediumLachno" & bacteria$lachno_cat == "6"] <- "MediumLachno,veryhigh"
-  bacteria$comboCat[bacteria$comboCat == "MediumLachno" & bacteria$lachno_cat == "5"] <- "MediumLachno,high"
-  bacteria$comboCat[bacteria$comboCat == "MediumLachno" & bacteria$lachno_cat == "4"] <- "MediumLachno,medium"
-  bacteria$comboCat[bacteria$comboCat == "MediumLachno" & bacteria$lachno_cat == "3"] <- "MediumLachno,low"
+  bacteria$comboCat[bacteria$comboCat == "MediumLachno" & bacteria$lachno_cat == "6"] <- "LachnoExtreme,BactHigh"
+  bacteria$comboCat[bacteria$comboCat == "MediumLachno" & bacteria$lachno_cat == "5"] <- "LachnoHigh,BactMedium"
+  bacteria$comboCat[bacteria$comboCat == "MediumLachno" & bacteria$lachno_cat == "4"] <- "LachnoMedium,BactLow"
+  bacteria$comboCat[bacteria$comboCat == "MediumLachno" & bacteria$lachno_cat == "3"] <- "LachnoLow,BactVL"
+  bacteria$comboCat[bacteria$comboCat == "MediumLachno" & bacteria$lachno_cat == "2"] <- "LachnoVL,BactND"
   
-  bacteria$comboCat[bacteria$comboCat == "MediumBact" & bacteria$bacHum_cat == "6"] <- "MediumBact,veryhigh"
-  bacteria$comboCat[bacteria$comboCat == "MediumBact" & bacteria$bacHum_cat == "5"] <- "MediumBact,high"
-  bacteria$comboCat[bacteria$comboCat == "MediumBact" & bacteria$bacHum_cat == "4"] <- "MediumBact,medium"
-  bacteria$comboCat[bacteria$comboCat == "MediumBact" & bacteria$bacHum_cat == "3"] <- "MediumBact,low"
+  bacteria$comboCat[bacteria$comboCat == "MediumBact" & bacteria$bacHum_cat == "6"] <- "BactExtreme,LachnoHigh"
+  bacteria$comboCat[bacteria$comboCat == "MediumBact" & bacteria$bacHum_cat == "5"] <- "BactHigh,LachnoMedium"
+  bacteria$comboCat[bacteria$comboCat == "MediumBact" & bacteria$bacHum_cat == "4"] <- "BactMedium,LachnoLow"
+  bacteria$comboCat[bacteria$comboCat == "MediumBact" & bacteria$bacHum_cat == "3"] <- "BactLow,LachnoVL"
+  bacteria$comboCat[bacteria$comboCat == "MediumBact" & bacteria$bacHum_cat == "2"] <- "BactVL,LachnoND"
 
-  bacteria$comboCat[bacteria$comboCat == "HigherLachno" & bacteria$lachno_cat %in% "6"] <- "HigherLachno,veryhigh"  
-  bacteria$comboCat[bacteria$comboCat == "HigherLachno" & bacteria$lachno_cat %in% "5"] <- "HigherLachno,high"
-  bacteria$comboCat[bacteria$comboCat == "HigherLachno" & bacteria$lachno_cat == "4"] <- "HigherLachno,medium"
-  bacteria$comboCat[bacteria$comboCat == "HigherLachno" & bacteria$lachno_cat == "3"] <- "HigherLachno,low"
+  bacteria$comboCat[bacteria$comboCat == "HigherLachno" & bacteria$lachno_cat == "6"] <- "LachnoExtreme,BactMedium"  
+  bacteria$comboCat[bacteria$comboCat == "HigherLachno" & bacteria$lachno_cat == "5"] <- "LachnoHigh,BactLow"
+  bacteria$comboCat[bacteria$comboCat == "HigherLachno" & bacteria$lachno_cat == "4"] <- "LachnoMedium,BactVL"
+  bacteria$comboCat[bacteria$comboCat == "HigherLachno" & bacteria$lachno_cat == "3"] <- "LachnoLow,BactND"
 
-  bacteria$comboCat[bacteria$comboCat == "HigherBact" & bacteria$bacHum_cat %in% c("6")] <- "HigherBact,veryhigh"  
-  bacteria$comboCat[bacteria$comboCat == "HigherBact" & bacteria$bacHum_cat %in% c("5")] <- "HigherBact,high"
-  bacteria$comboCat[bacteria$comboCat == "HigherBact" & bacteria$bacHum_cat == "4"] <- "HigherBact,medium"
-  bacteria$comboCat[bacteria$comboCat == "HigherBact" & bacteria$bacHum_cat == "3"] <- "HigherBact,low"
+  bacteria$comboCat[bacteria$comboCat == "HigherBact" & bacteria$bacHum_cat == "6"] <- "BactExtreme,LachnoMedium"  
+  bacteria$comboCat[bacteria$comboCat == "HigherBact" & bacteria$bacHum_cat == "5"] <- "BactHigh,LachnoLow"
+  bacteria$comboCat[bacteria$comboCat == "HigherBact" & bacteria$bacHum_cat == "4"] <- "BactMedium,LachnoVL"
+  bacteria$comboCat[bacteria$comboCat == "HigherBact" & bacteria$bacHum_cat == "3"] <- "BactLow,LachnoND"
   
-  bacteria$comboCat[bacteria$comboCat == "MuchHigherBact" & bacteria$bacHum_cat %in% "6"] <- "MuchHigherBact,veryhigh"
-  bacteria$comboCat[bacteria$comboCat == "MuchHigherBact" & bacteria$bacHum_cat %in% "5"] <- "MuchHigherBact,high"
-  bacteria$comboCat[bacteria$comboCat == "MuchHigherLachno" & bacteria$lachno_cat == "6"] <- "MuchHigherLachno,veryhigh"
-  bacteria$comboCat[bacteria$comboCat == "MuchHigherLachno" & bacteria$lachno_cat == "5"] <- "MuchHigherLachno,medium"
-  bacteria$comboCat[bacteria$comboCat == "MuchHigherLachno" & bacteria$lachno_cat == "4"] <- "MuchHigherLachno,low"
+  bacteria$comboCat[bacteria$comboCat == "MuchHigherBact" & bacteria$bacHum_cat == "6"] <- "BactExtreme,LachnoLow"
+  bacteria$comboCat[bacteria$comboCat == "MuchHigherBact" & bacteria$bacHum_cat == "5"] <- "BactHigh,LachnoVL"
+  bacteria$comboCat[bacteria$comboCat == "MuchHigherBact" & bacteria$bacHum_cat == "4"] <- "BactMedium,LachnoND"
+  
+  bacteria$comboCat[bacteria$comboCat == "MuchHigherLachno" & bacteria$lachno_cat == "6"] <- "LachnoExtreme,BactLow"
+  bacteria$comboCat[bacteria$comboCat == "MuchHigherLachno" & bacteria$lachno_cat == "5"] <- "LachnoHigh,BactVL"
+  bacteria$comboCat[bacteria$comboCat == "MuchHigherLachno" & bacteria$lachno_cat == "4"] <- "LachnoMedium,BactND"
   
   summaryDF <- bacteria %>%
     select(CAGRnumber, bacHum, lachno, bacHum_cat, lachno_cat, comboCat, sum_cat)
   
-  summaryDF$comboCat[summaryDF$comboCat == "1"] <- "ND"
-  summaryDF$comboCat[summaryDF$comboCat == "2"] <- "VeryLow"
-  summaryDF$comboCat[summaryDF$comboCat == "3"] <- "Low"
-  summaryDF$comboCat[summaryDF$comboCat == "4"] <- "Medium"
-  summaryDF$comboCat[summaryDF$comboCat == "5"] <- "High"
-  summaryDF$comboCat[summaryDF$comboCat == "6"] <- "VeryHigh"
-  
-  
-  orderData <- c("ND",
-                  "VeryLow",
-                  "HigherLachno,low",
-                  "HigherBact,low",
-                  "MediumBact,low",
-                  "MediumLachno,low",
-                  "MuchHigherLachno,low",
-                  "Low",
-                  "HigherLachno,medium",
-                  "MediumBact,medium",
-                  "MediumLachno,medium",
-                  "MuchHigherLachno,medium",
-                  "Medium",
-                  "MuchHigherLachno,high",
-                  "MuchHigherBact,high",
-                  "HigherLachno,high",
-                  "MediumLachno,high",
-                  "MediumBact,high", 
-                  "High",
-                  "MuchHigherLachno,veryhigh",
-                  "MuchHigherBact,veryhigh",
-                  "HigherLachno,veryhigh",
-                  "MediumLachno,veryhigh",
-                  "MediumBact,veryhigh",
-                  "VeryHigh")
+  summaryDF$comboCat[summaryDF$comboCat == "1"] <- "BactND,LachnoND"
+  summaryDF$comboCat[summaryDF$comboCat == "2"] <- "BactVL,LachnoVL"
+  summaryDF$comboCat[summaryDF$comboCat == "3"] <- "BactLow,LachnoLow"
+  summaryDF$comboCat[summaryDF$comboCat == "4"] <- "BactMedium,LachnoMedium"
+  summaryDF$comboCat[summaryDF$comboCat == "5"] <- "BactHigh,LachnoHigh"
+  summaryDF$comboCat[summaryDF$comboCat == "6"] <- "BactExtreme,LachnoExtreme"
+
+  orderData <- c( "BactND,LachnoND",
+                  "LachnoVL,BactND",
+                  "LachnoLow,BactND",
+                  "LachnoMedium,BactND",
+                  "LachnoHigh,BactND",
+                  "LachnoExtreme,BactND",
+                  "BactVL,LachnoND",
+                  "BactVL,LachnoVL",
+                  "LachnoLow,BactVL",
+                  "LachnoMedium,BactVL",
+                  "LachnoHigh,BactVL",
+                  "LachnoExtreme,BactVL",
+                  "BactLow,LachnoND",
+                  "BactLow,LachnoVL",
+                  "BactLow,LachnoLow",
+                  "LachnoMedium,BactLow",
+                  "LachnoHigh,BactLow",
+                  "LachnoExtreme,BactLow",
+                  "BactMedium,LachnoND",
+                  "BactMedium,LachnoVL",
+                  "BactMedium,LachnoLow",
+                  "BactMedium,LachnoMedium",
+                  "LachnoHigh,BactMedium",
+                  "LachnoExtreme,BactMedium",
+                  "BactHigh,LachnoND",
+                  "BactHigh,LachnoVL",
+                  "BactHigh,LachnoLow",
+                  "BactHigh,LachnoMedium",
+                  "BactHigh,LachnoHigh",
+                  "LachnoExtreme,BactHigh",
+                  "BactExtreme,LachnoND",
+                  "BactExtreme,LachnoVL",
+                  "BactExtreme,LachnoLow",
+                  "BactExtreme,LachnoMedium",
+                  "BactExtreme,LachnoHigh",
+                  "BactExtreme,LachnoExtreme" )
   
   summaryDF$comboCat <- factor(summaryDF$comboCat, levels = orderData)
 
@@ -132,9 +142,9 @@ categorizeBacteria <- function(cached.path, base.name){
   summaryDF$sum_cat[summaryDF$sum_cat == "(2e+03,2e+04]"] <- "Low"
   summaryDF$sum_cat[summaryDF$sum_cat == "(2e+04,2e+05]"] <- "Medium"
   summaryDF$sum_cat[summaryDF$sum_cat == "(2e+05,2e+06]"] <- "High"
-  summaryDF$sum_cat[summaryDF$sum_cat == "(2e+06,Inf]"] <- "VeryHigh"
+  summaryDF$sum_cat[summaryDF$sum_cat == "(2e+06,Inf]"] <- "Extreme"
   
-  summaryDF$sum_cat <- factor(summaryDF$sum_cat, levels = c("ND","VeryLow","Low","Medium","High","VeryHigh"))
+  summaryDF$sum_cat <- factor(summaryDF$sum_cat, levels = c("ND","VeryLow","Low","Medium","High","Extreme"))
   
   for(i in c("lachno_cat","bacHum_cat")){
     summaryDF[,i] <- as.character(summaryDF[[i]])
@@ -143,39 +153,56 @@ categorizeBacteria <- function(cached.path, base.name){
     summaryDF[summaryDF[[i]] == "3",i] <- "Low"
     summaryDF[summaryDF[[i]] == "4",i] <- "Medium"
     summaryDF[summaryDF[[i]] == "5",i] <- "High"
-    summaryDF[summaryDF[[i]] == "6",i] <- "VeryHigh"
+    summaryDF[summaryDF[[i]] == "6",i] <- "Extreme"
     
     summaryDF[,i] <- factor(summaryDF[,i], levels = c("ND","VeryLow","Low","Medium","High","VeryHigh"))
     
   }
   
+  rankND <- c("BactND,LachnoND")
+  rankVL <- c("LachnoVL,BactND",
+              "LachnoLow,BactND",
+              "BactVL,LachnoND",
+              "BactVL,LachnoVL",
+              "BactLow,LachnoND")
+  rankLow <- c("LachnoMedium,BactND",
+               "LachnoLow,BactVL",
+               "LachnoMedium,BactVL",
+               "BactLow,LachnoVL",
+               "BactLow,LachnoLow",
+               "BactMedium,LachnoND",
+               "BactMedium,LachnoVL")
+  rankMedium <- c("LachnoHigh,BactND",
+                  "LachnoExtreme,BactND",
+                  "LachnoHigh,BactVL",
+                  "LachnoMedium,BactLow",
+                  "LachnoHigh,BactLow",
+                  "BactMedium,LachnoLow",
+                  "BactMedium,LachnoMedium",
+                  "BactHigh,LachnoND",
+                  "BactHigh,LachnoVL",
+                  "BactHigh,LachnoLow",
+                  "BactExtreme,LachnoND")
+  rankHigh <- c("LachnoExtreme,BactVL",
+                "LachnoExtreme,BactLow",
+                "LachnoHigh,BactMedium",
+                "BactHigh,LachnoMedium",
+                "BactHigh,LachnoHigh",
+                "BactExtreme,LachnoVL",
+                "BactExtreme,LachnoLow")
+  rankExtreme <- c("LachnoExtreme,BactMedium",
+                   "LachnoExtreme,BactHigh",
+                   "BactExtreme,LachnoMedium",
+                   "BactExtreme,LachnoHigh",
+                   "BactExtreme,LachnoExtreme")
+  
+  
   summaryDF$cat_num <- 1
-  summaryDF$cat_num[as.character(summaryDF$comboCat) == "VeryLow"] <- 2
-  summaryDF$cat_num[as.character(summaryDF$comboCat) %in% c("HigherLachno,low",
-                                                            "HigherBact,low",
-                                                            "MediumBact,low",
-                                                            "MediumLachno,low",
-                                                            "MuchHigherLachno,low",
-                                                            "Low")] <- 3
-
-  summaryDF$cat_num[as.character(summaryDF$comboCat) %in% c("HigherLachno,medium",
-                                                            "MediumBact,medium",
-                                                            "MediumLachno,medium",
-                                                            "Medium")] <- 4
-
-  summaryDF$cat_num[as.character(summaryDF$comboCat) %in% c("MuchHigherLachno,high",
-                                                            "MuchHigherBact,high",
-                                                            "HigherLachno,high",
-                                                            "MediumLachno,high",
-                                                            "MediumBact,high",
-                                                            "High")] <- 5
-
-  summaryDF$cat_num[as.character(summaryDF$comboCat) %in% c("MuchHigherLachno,veryhigh",
-                                                            "MuchHigherBact,veryhigh",
-                                                            "HigherLachno,veryhigh",
-                                                            "MediumLachno,veryhigh",
-                                                            "MediumBact,veryhigh",
-                                                            "VeryHigh")] <- 6
+  summaryDF$cat_num[as.character(summaryDF$comboCat) %in% rankVL] <- 2
+  summaryDF$cat_num[as.character(summaryDF$comboCat) %in% rankLow] <- 3
+  summaryDF$cat_num[as.character(summaryDF$comboCat) %in% rankMedium] <- 4
+  summaryDF$cat_num[as.character(summaryDF$comboCat) %in% rankHigh] <- 5
+  summaryDF$cat_num[as.character(summaryDF$comboCat) %in% rankExtreme] <- 6
   
   # not getting VeryHigh in combo
   dfall <- left_join(dfall, summaryDF,
@@ -183,6 +210,12 @@ categorizeBacteria <- function(cached.path, base.name){
     rename(bacteria_cat = comboCat,
            contamination_rank = cat_num)
 
+  x <-  data.frame(table(summaryDF$comboCat)) %>%
+    left_join(distinct(select(summaryDF, comboCat, cat_num)), by=c("Var1"="comboCat")) %>%
+    arrange(cat_num)
+    
+  
+  
   meta.file(dfall, base.name)
   saveRDS(dfall,file=file.path(cached.path,"final","rds",paste0("summary",base.name,'.rds')))
   write.csv(dfall,file=file.path(cached.path,"final",paste0("summary",base.name,".csv")),row.names=FALSE)
