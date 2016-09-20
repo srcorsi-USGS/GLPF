@@ -4,10 +4,11 @@ library(dplyr)
 
 raw.path <- "raw_data"
 cached.path <- "cached_data"
+cached.save <- "4_process_merge_field_opt"
 
-mergeFieldOpt <- function(raw.path, cached.path){
+mergeFieldOpt <- function(raw.path, cached.path, cached.save){
 
-  data.opt <- readRDS(file.path(cached.path,"merged","trackingBacteria.rds"))
+  data.opt <- readRDS(file.path(cached.path,"3_process_merge_bacteria","trackingBacteria.rds"))
   
   data.opt <- mutate(data.opt,
                       USGSSTAID = zeroPad(ifelse(is.na(USGSSTAID), "", as.character(USGSSTAID)), padTo = 8),
@@ -18,7 +19,7 @@ mergeFieldOpt <- function(raw.path, cached.path){
   ###############################################################
   # NY:
   ###############################################################
-  data.ny <- readRDS(file.path(cached.path,"state","dataNY.rds"))
+  data.ny <- readRDS(file.path(cached.path,"1_munge","dataNY.rds"))
   data.opt.ny <- filter(data.opt, State == "NY")
   
   data.ny$FieldID[data.ny$FieldID == "WWRCTQ-1" & data.ny$WT == 18] <- "WWRCTQ-002"
@@ -40,7 +41,7 @@ mergeFieldOpt <- function(raw.path, cached.path){
   ###############################################################
   # MI:
   ###############################################################
-  data.mi <- readRDS(file.path(cached.path,"state","dataMI.rds"))
+  data.mi <- readRDS(file.path(cached.path,"1_munge","dataMI.rds"))
   data.opt.mi <- filter(data.opt, State == "MI")
   
   data.opt.mi$roundDate <- as.POSIXct(round(data.opt.mi$startDateTime,"min"))
@@ -61,7 +62,7 @@ mergeFieldOpt <- function(raw.path, cached.path){
   ###############################################################
   # WI:
   ###############################################################
-  data.wi <- readRDS(file.path(cached.path,"state","dataWI.rds"))
+  data.wi <- readRDS(file.path(cached.path,"1_munge","dataWI.rds"))
   data.opt.wi <- filter(data.opt, State == "WI")
 
   data.wi.merge <- right_join(data.wi, data.opt.wi, by=c("FieldID"="FieldID")) %>%
@@ -98,7 +99,7 @@ mergeFieldOpt <- function(raw.path, cached.path){
                              SampleType9regular2blank7replicate,
                              FilterAVolumemL,FilterBVolumemL,FilterAUSGSMIBARLVolumemL,FilterBUWMVolumemL,TotalAutoSamplerVolumeL)
   
-  saveRDS(data.merge.check, file.path(cached.path,"merged","mergeCheck.rds"))
+  saveRDS(data.merge.check, file.path(cached.path,cached.save,"mergeCheck.rds"))
   
   merged.data <- data.merge[,names(data.merge)[!(names(data.merge) %in% names(data.merge.check))]]
   
@@ -114,11 +115,11 @@ mergeFieldOpt <- function(raw.path, cached.path){
            pdate = SAMPLE_START_DT,
            pedate = endDateTime)
   
-  saveRDS(merged.data, file.path(cached.path,"merged","mergedData.rds"))
+  saveRDS(merged.data, file.path(cached.path,cached.save,"mergedData.rds"))
   
-  write.csv(merged.data, file.path(cached.path,"merged","mergedData.csv"), row.names = FALSE)
-  write.csv(data.merge.check, file.path(cached.path,"merged","mergedDataSupplement.csv"), row.names = FALSE)
+  write.csv(merged.data, file.path(cached.path,cached.save,"mergedData.csv"), row.names = FALSE)
+  write.csv(data.merge.check, file.path(cached.path,cached.save,"mergedDataSupplement.csv"), row.names = FALSE)
   
 }
 
-mergeFieldOpt(raw.optics, cached.path)
+mergeFieldOpt(raw.optics, cached.path, cached.save)

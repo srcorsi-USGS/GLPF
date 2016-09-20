@@ -4,9 +4,10 @@ library(data.table)
 #Raw data folder:
 raw.path <- "raw_data"
 cached.path <- "cached_data"
+cached.save <- "3_process_merge_bacteria"
 
-mergeTrackingBact <- function(raw.path, cached.path){
-  df <- readRDS(file.path(cached.path,"tracking","tracking.rds" ))
+mergeTrackingBact <- function(raw.path, cached.path, cached.save){
+  df <- readRDS(file.path(cached.path,"0_download","tracking.rds" ))
 
   dfglpfSummary <- setDF(fread(file.path(raw.path,"optics","GLPF_Summary.csv")))
   load(file=file.path(raw.path,"PreCleaned",'GLRI01-04-16_mergedBact.RData'))
@@ -100,8 +101,8 @@ mergeTrackingBact <- function(raw.path, cached.path){
   }
 
     
-  saveRDS(df,file=file.path(cached.path,"merged",'trackingBacteria.rds'))
+  saveRDS(df,file=file.path(cached.path,cached.save,'trackingBacteria.rds'))
   
 }
   
-mergeTrackingBact(raw.path, cached.path)
+mergeTrackingBact(raw.path, cached.path, cached.save)

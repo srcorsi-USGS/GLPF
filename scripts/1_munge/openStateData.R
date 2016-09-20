@@ -7,8 +7,9 @@ library(lubridate)
 #Raw data folder:
 raw.path <- "raw_data"
 cached.path <- "cached_data"
+cached.save <- "1_munge"
 
-openState <- function(raw.path, cached.path){
+openState <- function(raw.path, cached.path, cached.save){
   ###############################################################
   # WI:
   ###############################################################
@@ -39,8 +40,8 @@ openState <- function(raw.path, cached.path){
   data.wi.field.opts <- select(data.wi.field.opts.full, FieldID, state, UVch1,UVch2,UVch3)
   data.wi.field <- select(data.wi.field.all, SAMPLE_START_DT, FieldID, WT, DO, Turb, SC, pH, UVch1, UVch2, UVch3)
   
-  saveRDS(data.wi.field, file.path(cached.path,"state","dataWI.rds"))
-  saveRDS(filter(data.wi.field.opts.full, state == "WI"), file.path(cached.path,"state","dataWI_allData.rds"))
+  saveRDS(data.wi.field, file.path(cached.path,cached.save,"dataWI.rds"))
+  saveRDS(filter(data.wi.field.opts.full, state == "WI"), file.path(cached.path,cached.save,"dataWI_allData.rds"))
   
   ###############################################################
   # MI:
@@ -96,8 +97,8 @@ openState <- function(raw.path, cached.path){
                             select(data.mi.new.cleaned, SAMPLE_START_DT, FieldID, WT, DO, Turb, SC, pH))
     
   data.mi.wide.all <- bind_rows(data.mi.wide.all, data.mi.new.cleaned)
-  saveRDS(data.mi.wide, file.path(cached.path,"state","dataMI.rds"))
-  saveRDS(data.mi.wide.all, file.path(cached.path,"state","dataMI_allData.rds"))
+  saveRDS(data.mi.wide, file.path(cached.path,cached.save,"dataMI.rds"))
+  saveRDS(data.mi.wide.all, file.path(cached.path,cached.save,"dataMI_allData.rds"))
   
   ###############################################################
   # NY:
@@ -126,10 +127,10 @@ openState <- function(raw.path, cached.path){
   data.ny.munged <- left_join(data.ny.join, data.ny.opt.field, 
                               by=c("FieldID")) 
   
-  saveRDS(data.ny.munged, file.path(cached.path,"state","dataNY.rds"))
+  saveRDS(data.ny.munged, file.path(cached.path,cached.save,"dataNY.rds"))
   # NY didn't take any extra data:
-  saveRDS(data.ny.munged, file.path(cached.path,"state","dataNY_allData.rds"))
+  saveRDS(data.ny.munged, file.path(cached.path,cached.save,"dataNY_allData.rds"))
 }
 
-openState(raw.path, cached.path)
+openState(raw.path, cached.path, cached.save)
 

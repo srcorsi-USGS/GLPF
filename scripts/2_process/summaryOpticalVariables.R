@@ -1,24 +1,24 @@
 library(USGSHydroOpt)
 library(dplyr)
 
-meta.file <- function(df, base.name){
+meta.file <- function(df, base.name, cached.path){
   types <- lapply(df,class)
   types <- unlist(types)
   metaData <- data.frame(variable = names(types),
                          dataType = types, stringsAsFactors = FALSE)
   metaData$description <- ""
-  write.csv(metaData, row.names = FALSE, file = file.path(cached.path,"final","optic_summary",paste0("meta",base.name,".csv")))
+  write.csv(metaData, row.names = FALSE, file = file.path(cached.path,paste0("meta",base.name,".csv")))
 }
 
-summaryOpticalVariables <- function(cached.path, base.name, SummaryDir){
+summaryOpticalVariables <- function(cached.path, base.name, SummaryDir, cached.save){
 
-  dfall <- readRDS(file.path(cached.path, "final", "rds",paste0("summary",base.name,".rds")))
-  dfabs <- readRDS(file.path(cached.path, "final", "rds",paste0("dfabs",base.name,".rds")))
-  dffl <- readRDS(file.path(cached.path, "final", "rds",paste0("dffl",base.name,".rds")))
+  dfall <- readRDS(file.path(cached.path, "6_process_cagegorize_Bacteria", "rds",paste0("summary",base.name,".rds")))
+  dfabs <- readRDS(file.path(cached.path, "5_process_filterData", "rds",paste0("dfabs",base.name,".rds")))
+  dffl <- readRDS(file.path(cached.path, "5_process_filterData", "rds",paste0("dffl",base.name,".rds")))
 
   EEMs3D <- VectorizedTo3DArray(dffl,"exem",grnum = "CAGRnumber")
 
-  saveRDS(EEMs3D,file=file.path(cached.path,"final","optic_summary",paste0("EEMs3D",base.name,".rds")))
+  saveRDS(EEMs3D,file=file.path(cached.path,cached.save,"rds",paste0("EEMs3D",base.name,".rds")))
 
   ##############################################################################################
   # Read summary signals to extract from Fl and abs info
@@ -88,16 +88,17 @@ summaryOpticalVariables <- function(cached.path, base.name, SummaryDir){
   dfOpt <- arrange(dfOpt, USGSFieldID) %>%
     distinct()
   
-  meta.file(dfOpt, base.name)
-  saveRDS(dfOpt,file=file.path(cached.path,"final","optic_summary",paste0("summary",base.name,".rds")))
-  write.csv(dfOpt,file=file.path(cached.path,"final","optic_summary",paste0("summary",base.name,".csv")),row.names=FALSE)
+  meta.file(dfOpt, base.name, file.path(cached.path, cached.save))
+  saveRDS(dfOpt,file=file.path(cached.path,cached.save,"rds",paste0("summary",base.name,".rds")))
+  write.csv(dfOpt,file=file.path(cached.path,cached.save,paste0("summary",base.name,".csv")),row.names=FALSE)
 
 }
 
 cached.path <- "cached_data"
 SummaryDir <- file.path("raw_data","opticalSummary")
 base.name <- "_noQA"
-summaryOpticalVariables(cached.path, base.name, SummaryDir)
+cached.save <- "7_process_summarize_optics"
+summaryOpticalVariables(cached.path, base.name, SummaryDir, cached.save)
 base.name <- "_noWW_noQA"
-summaryOpticalVariables(cached.path, base.name, SummaryDir)
+summaryOpticalVariables(cached.path, base.name, SummaryDir, cached.save)
 

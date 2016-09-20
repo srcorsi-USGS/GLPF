@@ -6,12 +6,12 @@ meta.file <- function(df, base.name){
   metaData <- data.frame(variable = names(types),
                          dataType = types, stringsAsFactors = FALSE)
   metaData$description <- ""
-  write.csv(metaData, row.names = FALSE, file = file.path(cached.path,"final","optic_summary",paste0("meta",base.name,".csv")))
+  write.csv(metaData, row.names = FALSE, file = file.path(cached.path,"6_process_cagegorize_Bacteria",paste0("meta",base.name,".csv")))
 }
 
-categorizeBacteria <- function(cached.path, base.name){
+categorizeBacteria <- function(cached.path, base.name, cached.save){
   
-  dfall <- readRDS(file.path(cached.path,"final","rds",paste0("summary",base.name,".rds")))
+  dfall <- readRDS(file.path(cached.path,"5_process_filterData","rds",paste0("summary",base.name,".rds")))
   bacteria <- dfall[,c("CAGRnumber","bacHum", "lachno")]
   bacteria$bacHum_cat <- as.numeric(cut(x = bacteria$bacHum, breaks = c(0, 225,1000, 10000, 100000, 1000000, Inf), right = TRUE))
   bacteria$lachno_cat <- as.numeric(cut(x = bacteria$lachno, breaks = c(0, 225,1000, 10000, 100000, 1000000, Inf), right = TRUE))
@@ -217,15 +217,16 @@ categorizeBacteria <- function(cached.path, base.name){
   
   
   meta.file(dfall, base.name)
-  saveRDS(dfall,file=file.path(cached.path,"final","rds",paste0("summary",base.name,'.rds')))
-  write.csv(dfall,file=file.path(cached.path,"final",paste0("summary",base.name,".csv")),row.names=FALSE)
+  saveRDS(dfall,file=file.path(cached.path,cached.save,"rds",paste0("summary",base.name,'.rds')))
+  write.csv(dfall,file=file.path(cached.path,cached.save,paste0("summary",base.name,".csv")),row.names=FALSE)
 }
 
 
 cached.path <- "cached_data"
 base.name <- "_noQA"
-categorizeBacteria(cached.path, base.name)
+cached.save <- "6_process_cagegorize_Bacteria"
+categorizeBacteria(cached.path, base.name, cached.save)
 base.name <- "_noWW_noQA"
-categorizeBacteria(cached.path, base.name)
+categorizeBacteria(cached.path, base.name, cached.save)
 base.name <- "_QA"
-categorizeBacteria(cached.path, base.name)
+categorizeBacteria(cached.path, base.name, cached.save)

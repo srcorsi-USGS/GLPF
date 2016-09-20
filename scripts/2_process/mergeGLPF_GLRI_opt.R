@@ -1,5 +1,6 @@
 #Raw data folder:
-cached.path <- "cached_data/optics"
+cached.path <- "cached_data"
+cached.save <- "2_process_merge_GLRI_GLPF"
 raw.path <- "raw_data"
 raw.cleaned <- "raw_data/PreCleaned"
 
@@ -7,7 +8,7 @@ library(stringr)
 library(dplyr)
 library(data.table)
 
-mergeGLPF_GLRI_opt <- function(raw.path, raw.cleaned, cached.path){
+mergeGLPF_GLRI_opt <- function(raw.path, raw.cleaned, cached.path, cached.save){
 
   # GLRI optics:
   load(file.path(raw.cleaned,'GLRIWWOptFlAbsVectorized.RData'))
@@ -23,9 +24,9 @@ mergeGLPF_GLRI_opt <- function(raw.path, raw.cleaned, cached.path){
   dffl  <- bind_cols(dfflGLPF,dffl)
   dffl  <- dffl[,-which(names(dffl) == "exem")[-1]]
   
-  saveRDS(dfabs, file = file.path(cached.path, "dfabs.rds"))
-  saveRDS(dffl, file = file.path(cached.path, "dffl.rds"))
+  saveRDS(dfabs, file = file.path(cached.path,cached.save, "dfabs.rds"))
+  saveRDS(dffl, file = file.path(cached.path,cached.save, "dffl.rds"))
   
 }
 
-mergeGLPF_GLRI_opt(raw.path, raw.cleaned, cached.path)
+mergeGLPF_GLRI_opt(raw.path, raw.cleaned, cached.path, cached.save)

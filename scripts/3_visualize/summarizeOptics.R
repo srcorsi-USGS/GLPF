@@ -5,9 +5,9 @@ cached.path <- "cached_data"
 
 plotOpticalSummaries <- function(base.name, cached.path){
   
-  dfall <- readRDS(file.path(cached.path,"final","optic_summary",paste0("summary",base.name,".rds")))
-  dfabs <- readRDS(file.path(cached.path,"final","rds",paste0("dfabs",base.name,".rds")))
-  EEMs3D <- readRDS(file.path(cached.path,"final","optic_summary",paste0("EEMs3D",base.name,".rds")))
+  dfall <- readRDS(file.path(cached.path,"5_process_filterData","rds",paste0("summary",base.name,".rds")))
+  dfabs <- readRDS(file.path(cached.path,"5_process_filterData","rds",paste0("dfabs",base.name,".rds")))
+  EEMs3D <- readRDS(file.path(cached.path,"7_process_summarize_optics","rds",paste0("EEMs3D",base.name,".rds")))
   
   ##############################################################################################
   ##############################################################################################

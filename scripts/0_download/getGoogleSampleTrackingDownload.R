@@ -2,9 +2,10 @@ library(googlesheets)
 library(dplyr)
 
 cached.path <- "cached_data"
+cached.save <- "0_download"
 # Make sure Bison Connect is your default, and log out for good measure any personal gmail
 
-getGoogleData <- function(cached.path){
+getGoogleData <- function(cached.path, cached.save){
   
   token <- gs_auth(cache = FALSE)
   my_sheets <- gs_ls()
@@ -43,8 +44,8 @@ getGoogleData <- function(cached.path){
   names(df) <- gsub('\\.','',names(df))
   names(df) <- gsub('\\?','',names(df))
   
-  saveRDS(df, file.path(cached.path,"tracking","tracking.rds"))
+  saveRDS(df, file.path(cached.path,cached.save,"tracking.rds"))
 
 }
 
-getGoogleData(cached.path)
+getGoogleData(cached.path, cached.save)
