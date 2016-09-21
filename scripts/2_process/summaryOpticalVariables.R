@@ -69,12 +69,17 @@ summaryOpticalVariables <- function(cached.path, base.name, SummaryDir, cached.s
   dfOpt <- getRatios(dataSummary=dfOpt,sigs=ratioSignalsAbs,grnum="CAGRnumber")
   dfOpt <- getRatios(dataSummary=dfOpt,sigs=ratioSignalsSr,grnum="CAGRnumber")
   dfOpt <- getRatios(dataSummary=dfOpt,sigs=ratioSignalsSniff,grnum="CAGRnumber")
+  
+  dfOpt <- getRelDiff(dataSummary=dfOpt,sigs=ratioSignalsAbs,grnum="CAGRnumber")
+  dfOpt <- getRelDiff(dataSummary=dfOpt,sigs=ratioSignalsSr,grnum="CAGRnumber")
+  dfOpt <- getRelDiff(dataSummary=dfOpt,sigs=ratioSignalsSniff,grnum="CAGRnumber")
+  
   # dfOpt <- getRatios(dataSummary=dfOpt,sigs=ratioSignalsSniffWetStar,grnum="CAGRnumber")
   
   #Compute fraction of summation indices
-  dfOpt <- getFrcSum(dataSummary = dfOpt,
-                     sigs = fractionSignals,
-                     grnum = "CAGRnumber")
+  # dfOpt <- getFrcSum(dataSummary = dfOpt,
+  #                    sigs = fractionSignals,
+  #                    grnum = "CAGRnumber")
   
   #write.csv(names(dfOpt),file="dfOptnames.csv")
   #log transform where it makes sense
@@ -101,4 +106,5 @@ cached.save <- "7_process_summarize_optics"
 summaryOpticalVariables(cached.path, base.name, SummaryDir, cached.save)
 base.name <- "_noWW_noQA"
 summaryOpticalVariables(cached.path, base.name, SummaryDir, cached.save)
+
 

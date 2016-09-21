@@ -64,3 +64,6 @@ plotOpticalSummaries <- function(base.name, cached.path){
 base.name <- "_noWW_noQA"
 plotOpticalSummaries(base.name, cached.path)
 
+base.name <- "_noQA"
+plotOpticalSummaries(base.name, cached.path)
+

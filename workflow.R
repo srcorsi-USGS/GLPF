@@ -46,7 +46,18 @@ source("scripts/2_process/summaryOpticalVariables.R", encoding = 'UTF-8')
 #' @examples
 #' summaryDF <- readRDS(file.path("cached_data","7_process_summarize_optics","rds",paste0("summary","_noQA",".rds")))
 
+summaryDF <- readRDS(file.path("cached_data","7_process_summarize_optics","rds",paste0("summary","_noWW_noQA",".rds")))
+dfabs <- readRDS(file.path("cached_data","5_process_filterData","rds","dfabs_noWW_noQA.rds"))
+dffl <- readRDS(file.path("cached_data","5_process_filterData","rds","dffl_noWW_noQA.rds"))
+EEMS <- readRDS(file.path("cached_data","7_process_summarize_optics","rds","EEMs3D_noWW_noQA.rds"))
+
+###################################
+# Graphing functions
+
 source("scripts/3_visualize/summarizeOptics.R", encoding = 'UTF-8')
 #' @examples
 #' shell.exec(file.path("cached_figures",paste0("EEMs","_noWW_noQA",".pdf")))
 #' shell.exec(file.path("cached_figures",paste0("Abs","_noWW_noQA",".pdf")))
+#' 
+
+source("scripts/4_model/regressionTrees.R", encoding = 'UTF-8')
