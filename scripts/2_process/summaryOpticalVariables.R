@@ -74,21 +74,10 @@ summaryOpticalVariables <- function(cached.path, base.name, SummaryDir, cached.s
   dfOpt <- getRelDiff(dataSummary=dfOpt,sigs=ratioSignalsSr,grnum="CAGRnumber")
   dfOpt <- getRelDiff(dataSummary=dfOpt,sigs=ratioSignalsSniff,grnum="CAGRnumber")
   
-  # dfOpt <- getRatios(dataSummary=dfOpt,sigs=ratioSignalsSniffWetStar,grnum="CAGRnumber")
-  
-  #Compute fraction of summation indices
-  # dfOpt <- getFrcSum(dataSummary = dfOpt,
-  #                    sigs = fractionSignals,
-  #                    grnum = "CAGRnumber")
-  
-  #write.csv(names(dfOpt),file="dfOptnames.csv")
   #log transform where it makes sense
   dfOpt <- getLog10(dataSummary=dfOpt,signals=logSignals,grnum="CAGRnumber")
   
-  dfOpt$USGSFieldID <- dfOpt$FieldID
-  dfall$USGSFieldID <- dfOpt$FieldID
-  
-  
+  dfOpt <- rename(dfOpt, USGSFieldID= FieldID)
   
   dfOpt <- arrange(dfOpt, USGSFieldID) %>%
     distinct()

@@ -65,7 +65,7 @@ regressionTree <- function(cached.path, base.name){
   summaryDF <- readRDS(file.path(cached.path,"7_process_summarize_optics","rds",paste0("summary",base.name,".rds")))
   
   responses <- c("bacHum","lachno","contamination_rank")
-  IVs <- names(summaryDF)[which(names(summaryDF) == "OB1"):(length(names(summaryDF))-1)]
+  IVs <- names(summaryDF)[which(names(summaryDF) == "OB1"):length(names(summaryDF))]
 
   j <- responses[3]
 

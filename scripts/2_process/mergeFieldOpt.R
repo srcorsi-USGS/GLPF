@@ -13,8 +13,10 @@ mergeFieldOpt <- function(raw.path, cached.path, cached.save){
   data.opt <- mutate(data.opt,
                       USGSSTAID = zeroPad(ifelse(is.na(USGSSTAID), "", as.character(USGSSTAID)), padTo = 8),
                       USGSNWISStationIDifapplicable = zeroPad(ifelse(is.na(USGSNWISStationIDifapplicable), "", as.character(USGSNWISStationIDifapplicable)), padTo = 8),
-                      startDateTime = parse_date_time(Startdatetimemmddyyhhmm, c("%m/%d/%Y %H:%M:%S", "%m/%d/%Y %H:%M")),
-                      endDateTime = parse_date_time(Enddatetimemmddyyhhmm, c("%m/%d/%Y %H:%M:%S", "%m/%d/%Y %H:%M")))
+                      startDateTime = pdate)#parse_date_time(Startdatetimemmddyyhhmm, c("%m/%d/%Y %H:%M:%S", "%m/%d/%Y %H:%M")),
+                      
+  data.opt <- mutate(data.opt,
+                     endDateTime = parse_date_time(Enddatetimemmddyyhhmm, c("%m/%d/%Y %H:%M:%S", "%m/%d/%Y %H:%M")))
 
   ###############################################################
   # NY:
@@ -103,7 +105,7 @@ mergeFieldOpt <- function(raw.path, cached.path, cached.save){
   
   merged.data <- data.merge[,names(data.merge)[!(names(data.merge) %in% names(data.merge.check))]]
   
-  merged.data <- cbind(data.merge[,c("CAGRnumber","SAMPLE_START_DT","endDateTime","FieldID",
+  merged.data <- cbind(data.merge[,c("CAGRnumber","pdate","endDateTime","FieldID",
                                      "MIBARLID","UWMFT","eventNum",
                                      "Comments","hydroCondition","State","Season",
                                      "SampleType9regular2blank7replicate",
@@ -112,7 +114,6 @@ mergeFieldOpt <- function(raw.path, cached.path, cached.save){
                                      "VirusAutosampleorSewerGrab","project")], 
                        merged.data) %>%
     rename(SiteID=USGSNWISStationIDifapplicable,
-           pdate = SAMPLE_START_DT,
            pedate = endDateTime)
   
   saveRDS(merged.data, file.path(cached.path,cached.save,"mergedData.rds"))
