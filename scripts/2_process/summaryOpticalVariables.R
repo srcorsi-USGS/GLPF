@@ -65,14 +65,40 @@ summaryOpticalVariables <- function(cached.path, base.name, SummaryDir, cached.s
                        waveCol="nm",colSubsetString="gr",
                        dataSummary=dfOpt,grnum="CAGRnumber")
   
-  #Ratios of a few things
-  dfOpt <- getRatios(dataSummary=dfOpt,sigs=ratioSignalsAbs,grnum="CAGRnumber")
-  dfOpt <- getRatios(dataSummary=dfOpt,sigs=ratioSignalsSr,grnum="CAGRnumber")
-  dfOpt <- getRatios(dataSummary=dfOpt,sigs=ratioSignalsSniff,grnum="CAGRnumber")
+  orderRatios <- function(sigs){
+    #Ratios of a few things
+    ratioVars <- expand.grid(sigs,sigs, stringsAsFactors = FALSE) %>%
+      filter(Var1 != Var2) 
+    
+    ratioVars$lookup <- apply(ratioVars[,c("Var1","Var2")],1, function(x){paste(sort(x),collapse="~")})
+    
+    ratioVars <- filter(ratioVars, !duplicated(lookup)) %>%
+      select(-lookup)    
+    return(ratioVars)
+  }
+
   
-  dfOpt <- getRelDiff(dataSummary=dfOpt,sigs=ratioSignalsAbs,grnum="CAGRnumber")
-  dfOpt <- getRelDiff(dataSummary=dfOpt,sigs=ratioSignalsSr,grnum="CAGRnumber")
-  dfOpt <- getRelDiff(dataSummary=dfOpt,sigs=ratioSignalsSniff,grnum="CAGRnumber")
+  dfOpt <- getRatios(dataSummary=dfOpt,
+                     sigs=ratioSignalsAbs,
+                     grnum="CAGRnumber",
+                     specifyOrder = TRUE,
+                     ratioVars = orderRatios(ratioSignalsAbs))
+  dfOpt <- getRatios(dataSummary=dfOpt,sigs=ratioSignalsSr,
+                     grnum="CAGRnumber",specifyOrder = TRUE,
+                     ratioVars = orderRatios(ratioSignalsSr))
+  dfOpt <- getRatios(dataSummary=dfOpt,sigs=ratioSignalsSniff,
+                     grnum="CAGRnumber",specifyOrder = TRUE,
+                     ratioVars = orderRatios(ratioSignalsSniff))
+  
+  dfOpt <- getRatiosBase(dataSummary=dfOpt,sigs=ratioSignalsAbs[ratioSignalsAbs != "A254"], 
+                         baseSig = "A254",grnum="CAGRnumber",
+                         ratioVars = orderRatios(ratioSignalsAbs[ratioSignalsAbs != "A254"]))
+  dfOpt <- getRatiosBase(dataSummary=dfOpt,sigs=ratioSignalsSr[ratioSignalsSr != "A254"], 
+                         baseSig = "A254",grnum="CAGRnumber",
+                         ratioVars = orderRatios(ratioSignalsSr[ratioSignalsSr != "A254"]))
+  dfOpt <- getRatiosBase(dataSummary=dfOpt,sigs=ratioSignalsSniff[ratioSignalsSniff != "F"], 
+                         baseSig = "F",grnum="CAGRnumber",
+                         ratioVars = orderRatios(ratioSignalsSniff[ratioSignalsSniff != "F"]))
   
   #log transform where it makes sense
   dfOpt <- getLog10(dataSummary=dfOpt,signals=logSignals,grnum="CAGRnumber")
