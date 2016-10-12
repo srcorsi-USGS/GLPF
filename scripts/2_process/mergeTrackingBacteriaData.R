@@ -19,8 +19,8 @@ mergeTrackingBact <- function(raw.path, cached.path, cached.save){
   # dfall == GLRI
   dfall$Comments[dfall$Comments == ""] <- "Event Grab"
   dfall$State <- gsub(' ','',dfall$State)
-  dfall$pdate <- as.POSIXct(dfall$Start.date.time..mm.dd.yy.hh.mm.,format='%m/%d/%Y %H:%M')
-  dfall$pdate <- as.POSIXct(format(as.POSIXct(dfall$pdate),tz="GMT",usetz=TRUE),tz="GMT")
+  dfall$pdate <- as.POSIXct(dfall$Start.date.time..mm.dd.yy.hh.mm.,format='%m/%d/%Y %H:%M',tz="GMT")
+
   GMTOffset <- ifelse(dfall$State=='WI',6,5)
   dfall$pdate <- dfall$pdate + GMTOffset*60*60
   names(dfall) <- gsub("\\.","",names(dfall))
@@ -48,8 +48,7 @@ mergeTrackingBact <- function(raw.path, cached.path, cached.save){
   df <- full_join(df, dfall)
 
   df <- select(df, -lachno3cn100ml,
-               -qpcrBacHumanResults,-qpcrEnterococcusResults,-qpcrLachno2Results,
-               -esp, -ipaH, -ipaHcn100ml,-Esp2cn100ml) %>%
+               -qpcrBacHumanResults,-qpcrEnterococcusResults,-qpcrLachno2Results) %>%
     filter(CAGRnumber != "")
   # Deal with zeros and BLDs, convert to numeric
   
@@ -57,6 +56,9 @@ mergeTrackingBact <- function(raw.path, cached.path, cached.save){
   LachnoCensLevel <- 225
   entCensLevel <- 225
   eColiCensLevel <- 225
+  espCensLevel <- 225
+  ipaCensLevel <- 225
+  
   noDetectIndicators <- c('BLD','BLQ','0','<LRL',"ND")
 
   splitCens <- function(df, base.name, column.name, noDetectIndicators, censor.level){
@@ -70,6 +72,8 @@ mergeTrackingBact <- function(raw.path, cached.path, cached.save){
   df <- splitCens(df, "lachno", "lachnocn100g", noDetectIndicators, LachnoCensLevel)
   df <- splitCens(df, "ent", "enterocn100g", noDetectIndicators, entCensLevel)
   df <- splitCens(df, "eColi", "ecolicn100g", noDetectIndicators, eColiCensLevel)
+  df <- splitCens(df, "esp", "Esp2cn100ml", noDetectIndicators, espCensLevel)
+  df <- splitCens(df, "ipaH", "ipaHcn100ml", noDetectIndicators, ipaCensLevel)
 
   df$Site<-substr(df$FilterB02µMUWMSFS,1,nchar(df$FilterB02µMUWMSFS)-3)
   
@@ -79,10 +83,7 @@ mergeTrackingBact <- function(raw.path, cached.path, cached.save){
   df$hydroCondition[grep("event",df$Comments, ignore.case = TRUE)] <- "Event"
 
   df$eventNum <- 1
-  GMTOffset <- ifelse(df$State=='WI',6,5)[is.na(df$pdate)]
 
-  df$pdate[is.na(df$pdate)] <- as.POSIXct(df$Startdatetimemmddyyhhmm[is.na(df$pdate)], 
-                                          format="%m/%d/%Y %H:%M",tz="GMT",usetz=TRUE)+ GMTOffset*60*60
   df$eventNumInd <- 1
   
   eventNum <- ""
@@ -100,6 +101,7 @@ mergeTrackingBact <- function(raw.path, cached.path, cached.save){
     df$eventNum[df$State == state] <- paste0(state,subDF$eventNumInd)
   }
 
+  df <- df[!(df$CAGRnumber %in% c("x","N/A")),]
     
   saveRDS(df,file=file.path(cached.path,cached.save,'trackingBacteria.rds'))
   

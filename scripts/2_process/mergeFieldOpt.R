@@ -36,8 +36,11 @@ mergeFieldOpt <- function(raw.path, cached.path, cached.save){
     paste(strsplit(x,split = "-")[[1]][1],
           strsplit(x,split = "-")[[1]][2], sep="-")
     }))
-  
-  data.ny.merge <- right_join(data.ny, data.opt.ny, by=c("FieldID", "SAMPLE_START_DT"="startDateTime"))
+
+  # Dates don't seem to be close
+  data.ny.merge <- right_join(data.ny, data.opt.ny, 
+                              by=c("SAMPLE_START_DT"="startDateTime",
+                                   "FieldID"))
   data.ny.merge <- data.ny.merge[!is.na(data.ny.merge$CAGRnumber),]
 
   ###############################################################
@@ -47,17 +50,18 @@ mergeFieldOpt <- function(raw.path, cached.path, cached.save){
   data.opt.mi <- filter(data.opt, State == "MI")
   
   data.opt.mi$roundDate <- as.POSIXct(round(data.opt.mi$startDateTime,"min"))
-  data.opt.mi$FieldID_sm <- gsub("WW","", data.opt.mi$FieldID)
-  data.opt.mi$FieldID_sm <- sapply(strsplit(data.opt.mi$FieldID_sm, "-"), function(x) x[[1]][1])
-  
-  data.mi.merge <- right_join(data.mi, data.opt.mi, 
+  # data.opt.mi$FieldID_sm <- gsub("WW","", data.opt.mi$FieldID)
+  # data.opt.mi$FieldID_sm <- sapply(strsplit(data.opt.mi$FieldID_sm, "-"), function(x) x[[1]][1])
+  # 
+  data.mi.merge <- right_join(select(data.mi,-FieldID), data.opt.mi, 
                              by=c("SAMPLE_START_DT"="roundDate",
-                                  "FieldID"="FieldID_sm")) %>%
+                                  "SiteID" = "USGSNWISStationIDifapplicable")) %>%
     filter(!is.na(CAGRnumber)) %>%
     mutate(startDateTime=SAMPLE_START_DT,
            UVch1 = NA,
            UVch2 = NA,
-           UVch3 = NA) 
+           UVch3 = NA) %>%
+    rename(USGSNWISStationIDifapplicable = SiteID)
   
   data.mi.merge <- data.mi.merge[, names(data.ny.merge)]
   

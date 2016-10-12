@@ -51,6 +51,26 @@ dfabs <- readRDS(file.path("cached_data","5_process_filterData","rds","dfabs_noW
 dffl <- readRDS(file.path("cached_data","5_process_filterData","rds","dffl_noWW_noQA.rds"))
 EEMS <- readRDS(file.path("cached_data","7_process_summarize_optics","rds","EEMs3D_noWW_noQA.rds"))
 
+na.info <- function(df, key = "CAGRnumber", first.col = "OB1"){
+  opt.df <- df[,c(which(names(df) == key),which(names(df) == first.col):ncol(df))]
+  df.noNA <- na.omit(opt.df)
+  df.NA <- df[!(df[[key]] %in% df.noNA[[key]]),]
+  na.cols.full <- names(opt.df)[!(names(opt.df) %in% names(df.noNA))]
+  na.cols.partial <- colnames(df.NA)[ apply(df.NA, 2, anyNA) ]
+  na.rows <- df.NA[[key]]
+  return(list(na.cols.full = na.cols.full,
+              na.cols.partial = na.cols.partial, 
+              na.rows = na.rows))
+}
+
+na.info.list <- na.info(summaryDF)
+
+df.NA <- summaryDF %>% select(c(1,match(na.info.list$na.cols.partial,names(.)))) %>%
+  filter(CAGRnumber %in% na.info.list$na.rows)
+
+df.noNA <- summaryDF %>% select(-match(na.info.list$na.cols.partial,names(.))) %>%
+  filter(!(CAGRnumber %in% na.info.list$na.rows))
+
 ###################################
 # Graphing functions
 

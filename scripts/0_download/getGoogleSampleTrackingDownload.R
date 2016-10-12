@@ -11,15 +11,16 @@ getGoogleData <- function(cached.path, cached.save){
   my_sheets <- gs_ls()
   
   glpfTitle <- gs_title("GLPF sample tracking form.xlsx")
-  
-  tzone <- c(NA,'EST5EDT','EST5EDT','CST6CDT')
+  # 
+  GMToffset <- c(NA,5,5,6)
   
   for (i in 2:4){
-    dfState <- gs_read(glpfTitle,ws=i,range=cell_cols("A:Y"))
+    dfState <- gs_read(glpfTitle,ws=i,range=cell_cols("A:Z"))
     names(dfState) <- make.names(names(dfState))
     dfState <- filter(dfState,!is.na(Start.date.time..mm.dd.yy.hh.mm.))
-    dfState$pdate <- as.POSIXct(dfState$Start.date.time..mm.dd.yy.hh.mm.,format='%m/%d/%Y %H:%M:%S',tz=tzone[i])
-    dfState$pdate <- as.POSIXct(format(as.POSIXct(dfState$pdate),tz="GMT",usetz=TRUE),tz="GMT")
+    dfState$pdate <- as.POSIXct(dfState$Start.date.time..mm.dd.yy.hh.mm.,format='%m/%d/%Y %H:%M:%S',tz="GMT")
+    dfState$pdate <- dfState$pdate + GMToffset[i]*60*60
+    
     dfState$date <- as.Date(dfState$pdate)
 
     dfState$UWMFT <- suppressWarnings(as.integer(dfState$UWMFT))
@@ -43,6 +44,8 @@ getGoogleData <- function(cached.path, cached.save){
   
   names(df) <- gsub('\\.','',names(df))
   names(df) <- gsub('\\?','',names(df))
+  
+  df <- df[!(is.na(df$CAGRnumber) | df$CAGRnumber %in% c("x")),]
   
   saveRDS(df, file.path(cached.path,cached.save,"tracking.rds"))
 
