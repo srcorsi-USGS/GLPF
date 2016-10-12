@@ -13,6 +13,9 @@ meta.file <- function(df, base.name, cached.path){
 summaryOpticalVariables <- function(cached.path, base.name, SummaryDir, cached.save){
 
   dfall <- readRDS(file.path(cached.path, "6_process_cagegorize_Bacteria", "rds",paste0("summary",base.name,".rds")))
+  # #Shouldn't need to do this:
+  # dfall <- dfall[!duplicated(dfall$CAGRnumber),]
+  
   dfabs <- readRDS(file.path(cached.path, "5_process_filterData", "rds",paste0("dfabs",base.name,".rds")))
   dffl <- readRDS(file.path(cached.path, "5_process_filterData", "rds",paste0("dffl",base.name,".rds")))
 
