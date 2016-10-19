@@ -96,9 +96,9 @@ summaryOpticalVariables <- function(cached.path, base.name, SummaryDir, cached.s
   dfOpt <- getRatiosBase(dataSummary=dfOpt,sigs=ratioSignalsAbs[ratioSignalsAbs != "A254"], 
                          baseSig = "A254",grnum="CAGRnumber",
                          ratioVars = orderRatios(ratioSignalsAbs[ratioSignalsAbs != "A254"]))
-  dfOpt <- getRatiosBase(dataSummary=dfOpt,sigs=ratioSignalsSr[ratioSignalsSr != "A254"], 
-                         baseSig = "A254",grnum="CAGRnumber",
-                         ratioVars = orderRatios(ratioSignalsSr[ratioSignalsSr != "A254"]))
+  # dfOpt <- getRatiosBase(dataSummary=dfOpt,sigs=ratioSignalsSr[ratioSignalsSr != "A254"], 
+  #                        baseSig = "A254",grnum="CAGRnumber",
+  #                        ratioVars = orderRatios(ratioSignalsSr[ratioSignalsSr != "A254"]))
   dfOpt <- getRatiosBase(dataSummary=dfOpt,sigs=ratioSignalsSniff[ratioSignalsSniff != "F"], 
                          baseSig = "F",grnum="CAGRnumber",
                          ratioVars = orderRatios(ratioSignalsSniff[ratioSignalsSniff != "F"]))
@@ -110,7 +110,7 @@ summaryOpticalVariables <- function(cached.path, base.name, SummaryDir, cached.s
   
   dfOpt <- arrange(dfOpt, USGSFieldID) %>%
     distinct()
-  
+
   meta.file(dfOpt, base.name, file.path(cached.path, cached.save))
   saveRDS(dfOpt,file=file.path(cached.path,cached.save,"rds",paste0("summary",base.name,".rds")))
   write.csv(dfOpt,file=file.path(cached.path,cached.save,paste0("summary",base.name,".csv")),row.names=FALSE)

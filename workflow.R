@@ -52,23 +52,36 @@ dffl <- readRDS(file.path("cached_data","5_process_filterData","rds","dffl_noWW_
 EEMS <- readRDS(file.path("cached_data","7_process_summarize_optics","rds","EEMs3D_noWW_noQA.rds"))
 
 na.info <- function(df, key = "CAGRnumber", first.col = "OB1"){
-  opt.df <- df[,c(which(names(df) == key),which(names(df) == first.col):ncol(df))]
+  key.index <- which(names(df) == key)
+  opt.df <- df[,c(key.index,which(names(df) == first.col):ncol(df))]
   df.noNA <- na.omit(opt.df)
-  df.NA <- df[!(df[[key]] %in% df.noNA[[key]]),]
+  df.NA <- opt.df[!(opt.df[[key]] %in% df.noNA[[key]]),]
   na.cols.full <- names(opt.df)[!(names(opt.df) %in% names(df.noNA))]
   na.cols.partial <- colnames(df.NA)[ apply(df.NA, 2, anyNA) ]
   na.rows <- df.NA[[key]]
+  
+  inf.cols <- names(opt.df)[unlist(do.call(data.frame,lapply(opt.df, function(x) any(is.infinite(x)))))]
+  inf.rows <- which(is.infinite(rowSums(opt.df[-1])))
+  
   return(list(na.cols.full = na.cols.full,
-              na.cols.partial = na.cols.partial, 
-              na.rows = na.rows))
+              na.cols.partial = na.cols.partial,
+              na.rows = na.rows,
+              inf.cols = inf.cols,
+              inf.rows = inf.rows))
 }
 
 na.info.list <- na.info(summaryDF)
 
-df.NA <- summaryDF %>% select(c(1,match(na.info.list$na.cols.partial,names(.)))) %>%
+rmRows <- unique(c(which(summaryDF$CAGRnumber %in% na.info.list$na.rows),na.info.list$inf.rows))
+summaryDF <- summaryDF[-rmRows,]
+
+df.NA <- summaryDF %>% 
+  select(c(1,match(na.info.list$na.cols.partial,names(.)))) %>%
   filter(CAGRnumber %in% na.info.list$na.rows)
 
-df.noNA <- summaryDF %>% select(-match(na.info.list$na.cols.partial,names(.))) %>%
+df.noNA <- summaryDF %>% 
+  select(-match(na.info.list$na.cols.partial,names(.))) %>%
+  select(-match(na.info.list$inf.cols,names(.))) %>%
   filter(!(CAGRnumber %in% na.info.list$na.rows))
 
 ###################################

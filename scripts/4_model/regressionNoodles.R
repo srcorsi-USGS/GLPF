@@ -6,6 +6,7 @@ library(dplyr)
 
 cached.path <- "cached_data"
 base.name <- "_noQA"
+# base.name <- "_noWW_noQA"
 
 accuracyStuff <- function(summaryDF, m.p, response, threshold){
   summaryDF$predictions <- predict(m.p,newdata = summaryDF)
@@ -142,302 +143,223 @@ plotJitter_withModel <- function(summaryDF, m.p, threshold, response, title,
   text(0,7,paste0("n=",howGood[["falsePos"]]),pos=4)
 }
 
-
-
-###########################################
-# All the things!
-cached.path <- "cached_data"
-base.name <- "_noQA"
-threshold <- 2.5
-responses <- "contamination_rank"
-
-
-# TODO:
-# 1. All optic things
-# 2. Only absorbance
-# 3. Only fluorescence
-# 4. Leave out 1 season, predict season
-# 5. Leave out 1 state, predict state
-# Summarize variables, use subset:
-# 5. Leave out 1 event, predict event
-# 7. Leave out 1 event in 1 state, predict that event
-# Summarize results with predicted accuracy
-# 8. Add in non-optic stuff:
-#   a. DOC, TDN
-#   b. Season/date
-#   c. Other?
-
-# 1. All optic things
-summaryDF <- readRDS(file.path(cached.path,"7_process_summarize_optics","rds",paste0("summary",base.name,".rds")))
-summaryDF <- summaryDF[!is.na(summaryDF$contamination_rank),]
-
-IVs <- names(summaryDF)[which(names(summaryDF) == "OB1"):length(names(summaryDF))]
-
-form <- formula(paste(responses, "~", paste(IVs,collapse="+")))
-
-# m <- rpartScore(form,data=summaryDF,control=rpart.control(minsplit=40))
-# saveRDS(m, file=file.path(cached.path,"modeling_objects",paste0("rpartScore",base.name,".rds")))
-m <- readRDS(file.path(cached.path,"modeling_objects",paste0("rpartScore",base.name,".rds")))
-
-pdf(file.path("cached_figures","trees",paste0('rpartOrdinal',base.name,'.pdf')),width=11,height=8)
-plotcp(m)
-treeSum <- data.frame(accuracy = numeric(),
-                      sensitivity = numeric(),
-                      specificity = numeric(),
-                      step = numeric(),
-                      variable = character(),
-                      importance = numeric(),
-                      model = character(),
-                      stringsAsFactors = FALSE)
-
-for(i in 2:nrow(m$cptable)){
-  cpPrune <- m$cptable[i,'CP']
-  m.p <- prune(m, cp=cpPrune)
-  howGood <- accuracyStuff(summaryDF, m.p, "contamination_rank", threshold)
-  plotJitter(summaryDF, m.p, threshold, "contamination_rank", paste("All",i))
-  plot(as.party(m.p), tp_args=list(id=FALSE), main=paste("All",i))
+plotStuff <- function(m, summaryDF, threshold, model.type, eventDF=NA, subFolder="allCols"){
+  m.min.pos <- which.min(m$cptable[, 4])
+  th.1std.rule.mc <- m$cptable[m.min.pos, 4] + m$cptable[m.min.pos, 5]
+  best.1std.rule.mc <- which.max(m$cptable[, 4] < th.1std.rule.mc)
+  best.1std.rule.mc.cp <- m$cptable[best.1std.rule.mc, 1]
+  m.p <- prune(m, cp = best.1std.rule.mc.cp)
+  
+  signal.list <- as.character(m.p$frame$var)
+  signal.list <- signal.list[signal.list != "<leaf>"]
+  if(length(signal.list) == 0){
+    m.p <- m
+    signal.list <- as.character(m.p$frame$var)
+    signal.list <- signal.list[signal.list != "<leaf>"]
+  }
+  signal <- data.frame(signals = signal.list, optical.signals = 1)
+  signal$optical.signals[substr(signal.list, 1, 1) == "r"] <- 2
+  signal$optical.signals[substr(signal.list, 1, 1) == "rB"] <- 3
+  signal$optical.signals[nchar(gsub("[^0-9]", "", signal.list)) == 12]
+  #Get the signals that have 12 digits within them, and strip out non-digits
+  k <- gsub(pattern = "[^0-9]","",signal.list[nchar(gsub("[^0-9]", "", signal.list)) == 12])
+  #Figure out how many unique sets of 3:
+  if(length(k) > 0){
+    k.length <- apply((sapply(k, function(x) substring(x, seq(1, 11, 3), seq(3, 12, 3)))), 2, function(x) length(unique(x)))
+    signal$optical.signals[nchar(gsub("[^0-9]", "", signal.list)) == 12] <- k.length 
+  }
+  if(all(is.na(eventDF))){
+    howGood <- accuracyStuff(summaryDF, m.p, "contamination_rank", threshold)
+  } else {
+    howGood <- accuracyStuff(eventDF, m.p, "contamination_rank", threshold)
+  }
   
   importVars <- data.frame(importance = m.p$variable.importance,
                            variable = names(m.p$variable.importance),
                            stringsAsFactors = FALSE)
-  importVars$step <- i
   importVars$accuracy <- howGood$accuracy
   importVars$sensitivity <- howGood$sensitivity
   importVars$specificity <- howGood$specificity
-  importVars$model <- "All"
-  treeSum <- bind_rows(treeSum, importVars)
+  importVars$model <- model.type
   
+  df.sum <- data.frame(t(unlist(howGood)), stringsAsFactors = FALSE)
+  df.sum <- cbind(data.frame("model" = model.type, stringsAsFactors = FALSE), df.sum)
+  df.sum$nSignals <- sum(signal$optical.signals)
+  df.sum$variables <- paste(signal$signals,collapse = ",")
+  
+  if(all(is.na(eventDF))){
+    plotJitter(summaryDF, m.p, threshold, "contamination_rank", model.type)
+  } else {
+    plotJitter_withModel(subDF, m.p, threshold, "contamination_rank", 
+                         model.type,eventDF)
+  }
+  
+  plot(as.party(m.p), tp_args=list(id=FALSE), main=model.type)
+  write.csv(importVars, file.path("cached_figures","trees",subFolder,paste0("treeSummary_",model.type,".csv")), row.names = FALSE,quote=FALSE)
+  return(df.sum)
 }
+
+na.info <- function(df, key = "CAGRnumber", first.col = "OB1"){
+  key.index <- which(names(df) == key)
+  opt.df <- df[,c(key.index,which(names(df) == first.col):ncol(df))]
+  df.noNA <- na.omit(opt.df)
+  df.NA <- opt.df[!(opt.df[[key]] %in% df.noNA[[key]]),]
+  na.cols.full <- names(opt.df)[!(names(opt.df) %in% names(df.noNA))]
+  na.cols.partial <- colnames(df.NA)[ apply(df.NA, 2, anyNA) ]
+  na.rows <- df.NA[[key]]
+  
+  inf.cols <- names(opt.df)[unlist(do.call(data.frame,lapply(opt.df, function(x) any(is.infinite(x)))))]
+  inf.rows <- which(is.infinite(rowSums(opt.df[-1])))
+  
+  return(list(na.cols.full = na.cols.full,
+              na.cols.partial = na.cols.partial,
+              na.rows = na.rows,
+              inf.cols = inf.cols,
+              inf.rows = inf.rows))
+}
+
+###########################################
+# All the things!
+threshold <- 2.5
+responses <- "contamination_rank"
+
+summaryDF <- readRDS(file.path(cached.path,"7_process_summarize_optics","rds",paste0("summary",base.name,".rds")))
+summaryDF <- summaryDF[!is.na(summaryDF$contamination_rank),]
+
+na.info.list <- na.info(summaryDF)
+
+rmRows <- unique(c(which(summaryDF$CAGRnumber %in% na.info.list$na.rows),na.info.list$inf.rows))
+
+summaryDF <- summaryDF[-rmRows,]
+
+IVs <- names(summaryDF)[which(names(summaryDF) == "OB1"):length(names(summaryDF))]
+
+###########################################
+# All:
+
+subFolder <- "allCols"
+
+form <- formula(paste(responses, "~", paste(IVs,collapse="+")))
+# m <- rpartScore(form,data=summaryDF,control=rpart.control(minsplit=40))
+# saveRDS(m, file=file.path(cached.path,"modeling_objects",subFolder,paste0("rpartScore",base.name,".rds")))
+m <- readRDS(file.path(cached.path,"modeling_objects",subFolder,paste0("rpartScore",base.name,".rds")))
+
+pdf(file.path("cached_figures","trees",subFolder,paste0('rpartOrdinal',base.name,"_","All",'.pdf')),width=11,height=8)
+  df.sum <- plotStuff(m, summaryDF, threshold, "All", subFolder=subFolder)
 dev.off()
-write.csv(treeSum, file.path("cached_figures","trees","treeSummary_All.csv"), row.names = FALSE,quote=FALSE)
+
+df.sum.total <- df.sum
 
 
 ###########################################
 # Just abs:
-cached.path <- "cached_data"
-base.name <- "_noQA"
-summaryDF <- readRDS(file.path(cached.path,"7_process_summarize_optics","rds",paste0("summary",base.name,".rds")))
-responses <- "contamination_rank"
-IVs <- names(summaryDF)[which(names(summaryDF) == "OB1"):length(names(summaryDF))]
-IVs_abs <- c(IVs[grep("A\\d{3}",IVs)],IVs[grep("Sag",IVs)])
+IVs_abs <- c(IVs[grep("A\\d{3}",IVs)],IVs[grep("Sag",IVs)],IVs[grep("Aresid",IVs)])
 IVs_fl <- IVs[!(IVs %in% IVs_abs)]
 
 form <- formula(paste(responses, "~", paste(IVs_abs,collapse="+")))
-
-summaryDF <- summaryDF[!is.na(summaryDF$contamination_rank),]
-
 # m <- rpartScore(form,data=summaryDF,control=rpart.control(minsplit=40))
-# saveRDS(m, file=file.path(cached.path,"modeling_objects",paste0("rpartScore_JUST_ABS",base.name,".rds")))
-m <- readRDS(file.path(cached.path,"modeling_objects",paste0("rpartScore_JUST_ABS",base.name,".rds")))
+# saveRDS(m, file=file.path(cached.path,"modeling_objects",subFolder,paste0("rpartScore_JUST_ABS",base.name,".rds")))
+m <- readRDS(file.path(cached.path,"modeling_objects",subFolder,paste0("rpartScore_JUST_ABS",base.name,".rds")))
 
-pdf(file.path("cached_figures","trees",paste0('rpartOrdinal_JUST_ABS',base.name,'.pdf')),width=11,height=8)
-plotcp(m)
-treeSum <- data.frame(accuracy = numeric(),
-                      sensitivity = numeric(),
-                      specificity = numeric(),
-                      step = numeric(),
-                      variable = character(),
-                      importance = numeric(),
-                      model = character(),
-                      stringsAsFactors = FALSE)
-for(i in 2:nrow(m$cptable)){
-  cpPrune <- m$cptable[i,'CP']
-  m.p <- prune(m, cp=cpPrune)
-  howGood <- accuracyStuff(summaryDF, m.p, "contamination_rank", threshold)
-  plotJitter(summaryDF, m.p, threshold, "contamination_rank", paste("Using just Absorbance",i))
-  plot(as.party(m.p), tp_args=list(id=FALSE), main=paste("Using just Absorbance",i))
-  importVars <- data.frame(importance = m.p$variable.importance,
-                           variable = names(m.p$variable.importance),
-                           stringsAsFactors = FALSE)
-  importVars$step <- i
-  importVars$accuracy <- howGood$accuracy
-  importVars$sensitivity <- howGood$sensitivity
-  importVars$specificity <- howGood$specificity
-  importVars$model <- "Absorption"
-  treeSum <- bind_rows(treeSum, importVars)
-}
+pdf(file.path("cached_figures","trees",subFolder,paste0('rpartOrdinal',base.name,"_","Abs",'.pdf')),width=11,height=8)
+  df.sum <- plotStuff(m, summaryDF, threshold, "Abs", subFolder=subFolder)
 dev.off()
-write.csv(treeSum, file.path("cached_figures","trees","treeSummary_justAbs.csv"), row.names = FALSE,quote=FALSE)
+df.sum.total <- bind_rows(df.sum.total, df.sum)
 
 ###########################################
 # Just fluorescence:
 form <- formula(paste(responses, "~", paste(IVs_fl,collapse="+")))
-
 # m <- rpartScore(form,data=summaryDF,control=rpart.control(minsplit=40))
-# saveRDS(m, file=file.path(cached.path,"modeling_objects",paste0("rpartScore_JUST_FL",base.name,".rds")))
-m <- readRDS(file.path(cached.path,"modeling_objects",paste0("rpartScore_JUST_FL",base.name,".rds")))
-
-pdf(file.path("cached_figures","trees",paste0('rpartOrdinal_JUST_FL',base.name,'.pdf')),width=11,height=8)
-plotcp(m)
-treeSum <- data.frame(accuracy = numeric(),
-                      sensitivity = numeric(),
-                      specificity = numeric(),
-                      step = numeric(),
-                      variable = character(),
-                      importance = numeric(),
-                      model = character(),
-                      stringsAsFactors = FALSE)
-for(i in 2:nrow(m$cptable)){
-  cpPrune <- m$cptable[i,'CP']
-  m.p <- prune(m, cp=cpPrune)
-  howGood <- accuracyStuff(summaryDF, m.p, "contamination_rank", threshold)
-  plotJitter(summaryDF, m.p, threshold, "contamination_rank", paste("Using just Fluorescence",i))
-  
-  plot(as.party(m.p), tp_args=list(id=FALSE), main=paste("Using just Fluorescence",i))
-  importVars <- data.frame(importance = m.p$variable.importance,
-                           variable = names(m.p$variable.importance),
-                           stringsAsFactors = FALSE)
-  importVars$step <- i
-  importVars$accuracy <- howGood$accuracy
-  importVars$sensitivity <- howGood$sensitivity
-  importVars$specificity <- howGood$specificity
-  importVars$model <- "Fluorescence"
-  treeSum <- bind_rows(treeSum, importVars)
-}
+# saveRDS(m, file=file.path(cached.path,"modeling_objects",subFolder,paste0("rpartScore_JUST_FL",base.name,".rds")))
+m <- readRDS(file.path(cached.path,"modeling_objects",subFolder,paste0("rpartScore_JUST_FL",base.name,".rds")))
+pdf(file.path("cached_figures","trees",subFolder,paste0('rpartOrdinal',base.name,"_","Fl",'.pdf')),width=11,height=8)
+  df.sum <- plotStuff(m, summaryDF, threshold, "Fl", base.name, subFolder=subFolder)
 dev.off()
-write.csv(treeSum, file.path("cached_figures","trees","treeSummary_justFL.csv"), row.names = FALSE,quote=FALSE)
+df.sum.total <- bind_rows(df.sum.total, df.sum)
+
+
 ###################################################
 
-#######
-# Pull out 1 season
-form <- formula(paste(responses, "~", paste(IVs,collapse="+")))
-
-for(j in c('Fall','Summer','Spring','Winter')){
-  subDF <- filter(summaryDF, Season != j)
-
-  m <- rpartScore(form,data=subDF,control=rpart.control(minsplit=40))
-  saveRDS(m, file=file.path(cached.path,"modeling_objects",paste0("rpartScore_NO",j,base.name,".rds")))
-  m <- readRDS(file.path(cached.path,"modeling_objects",paste0("rpartScore_NO",j,base.name,".rds")))
-
-  pdf(file.path("cached_figures","trees",paste0('rpartOrdinal_NO',j,base.name,'.pdf')),width=11,height=8)
-  plotcp(m)
-  treeSum <- data.frame(accuracy = numeric(),
-                        sensitivity = numeric(),
-                        specificity = numeric(),
-                        step = numeric(),
-                        variable = character(),
-                        importance = numeric(),
-                        model = character(),
-                        stringsAsFactors = FALSE)
-  eventDF <- filter(summaryDF, Season == j)
+for(model.text in c("All","Abs","Fl")){
+  if(model.text == "All"){
+    form <- formula(paste(responses, "~", paste(IVs,collapse="+")))
+  } else if (model.text == "Abs"){
+    form <- formula(paste(responses, "~", paste(IVs_abs,collapse="+")))
+  } else {
+    form <- formula(paste(responses, "~", paste(IVs_fl,collapse="+")))
+  }
   
-  for(i in 2:nrow(m$cptable)){
-    cpPrune <- m$cptable[i,'CP']
-    m.p <- prune(m, cp=cpPrune)
-    howGood <- accuracyStuff(subDF, m.p, "contamination_rank", threshold)
+  for(j in c('Fall','Summer','Spring','Winter')){
+    subDF <- filter(summaryDF, Season != j)
+  
+    # m <- rpartScore(form,data=subDF,control=rpart.control(minsplit=40))
+    # saveRDS(m, file=file.path(cached.path,"modeling_objects",subFolder,paste0("rpartScore_NO",j,"_",model.text,base.name,".rds")))
+    m <- readRDS(file.path(cached.path,"modeling_objects",subFolder,paste0("rpartScore_NO",j,"_",model.text,base.name,".rds")))
+    eventDF <- filter(summaryDF, Season == j)
+    df.sum <- plotStuff(m, summaryDF, threshold, paste0("No",j,"_",model.text), base.name, eventDF, subFolder)
+    df.sum.total <- bind_rows(df.sum.total, df.sum)
+  }
+  
+  
+  #######
+  # Pull out 1 state
+  
+  for(j in c('WI','MI','NY')){
+    subDF <- filter(summaryDF, State != j)
+    eventDF <- filter(summaryDF, State == j)
+    # m <- rpartScore(form,data=subDF,control=rpart.control(minsplit=40))
+    # saveRDS(m, file=file.path(cached.path,"modeling_objects",subFolder,paste0("rpartScore_NO",j,"_",model.text,base.name,".rds")))
+    m <- readRDS(file.path(cached.path,"modeling_objects",subFolder,paste0("rpartScore_NO",j,"_",model.text,base.name,".rds")))
+    df.sum <- plotStuff(m, summaryDF, threshold, paste0("No",j,"_",model.text), base.name, eventDF, subFolder)
+    df.sum.total <- bind_rows(df.sum.total, df.sum)
+  }
+}
+  
 
-    plotJitter_withModel(subDF, m.p, threshold, "contamination_rank", 
-                         paste("Model has NO",j," Predicts",j,": Step",i),eventDF)
+for(model.text in c("All","Abs","Fl")){
+  if(model.text == "All"){
+    form <- formula(paste(responses, "~", paste(IVs,collapse="+")))
+  } else if (model.text == "Abs"){
+    form <- formula(paste(responses, "~", paste(IVs_abs,collapse="+")))
+  } else {
+    form <- formula(paste(responses, "~", paste(IVs_fl,collapse="+")))
+  }
+  
+  #######
+  # Pull out 1 state and 1 event
+  
+  for(j in c('WI','MI','NY')){
+    pdf(file.path("cached_figures","trees",subFolder,paste0('rpartOrdinal',base.name,"_Only",j,"_",model.text,'.pdf')),width=11,height=8)
     
-    plot(as.party(m.p), tp_args=list(id=FALSE), main=paste("NO",j,i))
+    subDF <- filter(summaryDF, State == j)
     
-    importVars <- data.frame(importance = m.p$variable.importance,
-                             variable = names(m.p$variable.importance),
-                             stringsAsFactors = FALSE)
-    importVars$step <- i
-    importVars$accuracy <- howGood$accuracy
-    importVars$sensitivity <- howGood$sensitivity
-    importVars$specificity <- howGood$specificity
-    importVars$model <- paste("No:",j)
-    treeSum <- bind_rows(treeSum, importVars)
-  }
-  
+    bigE <- group_by(subDF, eventNum) %>%
+      summarise(nObs = n()) %>%
+      arrange(desc(nObs)) %>%
+      filter(nObs >= 15)
+    
+    for(k in bigE$eventNum){
+      eventDF <- filter(subDF, eventNum == k)
+      subDF_sub <- filter(subDF, eventNum != k)
+      
+      m <- rpartScore(form,data=subDF_sub,control=rpart.control(minsplit=40))
+      saveRDS(m, file=file.path(cached.path,"modeling_objects",subFolder,paste0("rpartScore_Only",j,"_No_",k,"_",model.text,base.name,".rds")))
+      m <- readRDS(file.path(cached.path,"modeling_objects",subFolder,paste0("rpartScore_Only",j,"_No_",k,"_",model.text,base.name,".rds")))
+      
+      df.sum <- plotStuff_noSave(m, subDF_sub, threshold, paste0("Only",j,"_No_",k,"_",model.text), base.name, eventDF, subFolder)
+      df.sum.total <- bind_rows(df.sum.total, df.sum)
+    }
   dev.off()
-  write.csv(treeSum, file.path("cached_figures","trees",paste0("treeSummary_NO",j,".csv")), row.names = FALSE,quote=FALSE)
+  }
 }
 
+write.csv(df.sum.total, file.path("cached_figures","trees",subFolder,"summaryTreeResults.csv"),row.names = FALSE,quote=FALSE)
 
-#######
-# Pull out 1 state
 
-for(j in c('WI','MI','NY')){
-  subDF <- filter(summaryDF, State != j)
-  
-  m <- rpartScore(form,data=subDF,control=rpart.control(minsplit=40))
-  saveRDS(m, file=file.path(cached.path,"modeling_objects",paste0("rpartScore_NO",j,base.name,".rds")))
-  m <- readRDS(file.path(cached.path,"modeling_objects",paste0("rpartScore_NO",j,base.name,".rds")))
-
-  pdf(file.path("cached_figures","trees",paste0('rpartOrdinal_NO',j,base.name,'.pdf')),width=11,height=8)
-  plotcp(m)
-  treeSum <- data.frame(accuracy = numeric(),
-                        sensitivity = numeric(),
-                        specificity = numeric(),
-                        step = numeric(),
-                        variable = character(),
-                        importance = numeric(),
-                        model = character(),
-                        stringsAsFactors = FALSE)
-  eventDF <- filter(summaryDF, State == j)
-  for(i in 2:nrow(m$cptable)){
-    cpPrune <- m$cptable[i,'CP']
-    m.p <- prune(m, cp=cpPrune)
-    howGood <- accuracyStuff(subDF, m.p, "contamination_rank", threshold)
-    plotJitter_withModel(subDF, m.p, threshold, "contamination_rank", 
-                         paste("Model has NO",j," Predicts",j,": Step",i),eventDF)
-
-    plot(as.party(m.p), tp_args=list(id=FALSE), main=paste("NO",j,i))
-    importVars <- data.frame(importance = m.p$variable.importance,
-                             variable = names(m.p$variable.importance),
-                             stringsAsFactors = FALSE)
-    importVars$step <- i
-    importVars$accuracy <- howGood$accuracy
-    importVars$sensitivity <- howGood$sensitivity
-    importVars$specificity <- howGood$specificity
-    importVars$model <- paste("No:",j)
-    treeSum <- bind_rows(treeSum, importVars)
-  }
-  dev.off()
-  write.csv(treeSum, file.path("cached_figures","trees",paste0("treeSummary_NO",j,".csv")), row.names = FALSE,quote=FALSE)
-}
-
-for(j in c('WI','MI','NY')){
-  subDF <- filter(summaryDF, State == j)
-  filterEvent <- table(subDF$eventNum)[order(table(subDF$eventNum),decreasing = TRUE)][2]
-  subDF <- filter(subDF, eventNum != names(filterEvent))
-  
-  m <- rpartScore(form,data=subDF,control=rpart.control(minsplit=40))
-  saveRDS(m, file=file.path(cached.path,"modeling_objects",paste0("rpartScore_NO",j,base.name,".rds")))
-  m <- readRDS(file.path(cached.path,"modeling_objects",paste0("rpartScore_NO",j,base.name,".rds")))
-
-  pdf(file.path("cached_figures","trees",paste0('rpartOrdinal_NO',names(filterEvent),base.name,'.pdf')),width=11,height=8)
-  plotcp(m)
-  treeSum <- data.frame(accuracy = numeric(),
-                        sensitivity = numeric(),
-                        specificity = numeric(),
-                        step = numeric(),
-                        variable = character(),
-                        importance = numeric(),
-                        model = character(),
-                        stringsAsFactors = FALSE)
-  eventDF <- filter(summaryDF, eventNum == names(filterEvent))
-  
-  for(i in 2:nrow(m$cptable)){
-    cpPrune <- m$cptable[i,'CP']
-    m.p <- prune(m, cp=cpPrune)
-    howGood <- accuracyStuff(subDF, m.p, "contamination_rank", threshold)
-
-    plotJitter_withModel(subDF, m.p, threshold, "contamination_rank", 
-                         paste("Model has NO",names(filterEvent),"only",j," Predicts",names(filterEvent),": Step",i),eventDF)
-    plot(as.party(m.p), tp_args=list(id=FALSE), main=paste("NO",names(filterEvent),"only",j,i))
-    importVars <- data.frame(importance = m.p$variable.importance,
-                             variable = names(m.p$variable.importance),
-                             stringsAsFactors = FALSE)
-    importVars$step <- i
-    importVars$accuracy <- howGood$accuracy
-    importVars$sensitivity <- howGood$sensitivity
-    importVars$specificity <- howGood$specificity
-    importVars$model <- paste(j, "No:",names(filterEvent))
-    treeSum <- bind_rows(treeSum, importVars)
-  }
-  
-  dev.off()
-  write.csv(treeSum, file.path("cached_figures","trees",paste0("treeSummary_NO",names(filterEvent),".csv")), row.names = FALSE,quote=FALSE)
-}
 
 treeSum <- data.frame(accuracy = numeric(),
                       sensitivity = numeric(),
                       specificity = numeric(),
-                      step = numeric(),
                       variable = character(),
                       importance = numeric(),
                       model = character(),
@@ -461,26 +383,15 @@ treeSum_summary <- treeSum %>%
             n_models = length(unique(model))) %>%
   arrange(-wt_imp_mean)
   
-##########################################################################
-
-IVs <- treeSum_summary$variable[1:25]
-form.new <- formula(paste(responses, "~", paste(IVs,collapse="+")))
-
-m <- rpartScore(form.new,data=summaryDF,control=rpart.control(minsplit=40))
-saveRDS(m, file=file.path(cached.path,"modeling_objects",paste0("rpartScore_using25vars",base.name,".rds")))
-m <- readRDS(file.path(cached.path,"modeling_objects",paste0("rpartScore_using25vars",base.name,".rds")))
-
-pdf(file.path("cached_figures","trees",paste0('rpartOrdinal_using25vars',base.name,'.pdf')),width=11,height=8)
-plotcp(m)
-for(i in 2:nrow(m$cptable)){
-  cpPrune <- m$cptable[i,'CP']
-  m.p <- prune(m, cp=cpPrune)
-  howGood <- accuracyStuff(summaryDF, m.p, "contamination_rank", threshold)
-  
-  plotJitter(summaryDF, m.p, threshold, "contamination_rank", paste("25 vars",i))
-  plot(as.party(m.p), tp_args=list(id=FALSE), main=paste("25 vars",i))
-
-}
-dev.off()
-
-
+# ##########################################################################
+# library('corrplot') 
+# M <- cor(summaryDF[,c(which(names(summaryDF) == "OB1"):ncol(summaryDF))]) # get correlations
+# M <- cor(summaryDF[,45:100]) 
+# pdf("corrplot.pdf")
+# corrplot(M, method = "circle") #plot matrix
+# dev.off()
+# 
+# library(qtlcharts)
+# iplotCorr(summaryDF[,45:200], reorder=TRUE)
+# iplotCorr(summaryDF[,200:300], reorder=TRUE)
+# iplotCorr(summaryDF[,300:469], reorder=TRUE)
