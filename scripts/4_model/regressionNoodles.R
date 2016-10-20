@@ -223,137 +223,154 @@ na.info <- function(df, key = "CAGRnumber", first.col = "OB1"){
 threshold <- 2.5
 responses <- "contamination_rank"
 
-summaryDF <- readRDS(file.path(cached.path,"7_process_summarize_optics","rds",paste0("summary",base.name,".rds")))
-summaryDF <- summaryDF[!is.na(summaryDF$contamination_rank),]
-
-na.info.list <- na.info(summaryDF)
-
-rmRows <- unique(c(which(summaryDF$CAGRnumber %in% na.info.list$na.rows),na.info.list$inf.rows))
-
-summaryDF <- summaryDF[-rmRows,]
-
-IVs <- names(summaryDF)[which(names(summaryDF) == "OB1"):length(names(summaryDF))]
-
 ###########################################
 # All:
 
-subFolder <- "allCols"
+subFolders <- c("allCols","allRows","allCols_noWW","allRows_noWW")
+base.names <- c("_noQA","_noQA","_noWW_noQA","_noWW_noQA")
 
-form <- formula(paste(responses, "~", paste(IVs,collapse="+")))
-# m <- rpartScore(form,data=summaryDF,control=rpart.control(minsplit=40))
-# saveRDS(m, file=file.path(cached.path,"modeling_objects",subFolder,paste0("rpartScore",base.name,".rds")))
-m <- readRDS(file.path(cached.path,"modeling_objects",subFolder,paste0("rpartScore",base.name,".rds")))
+for(job in 2:4){
 
-pdf(file.path("cached_figures","trees",subFolder,paste0('rpartOrdinal',base.name,"_","All",'.pdf')),width=11,height=8)
-  df.sum <- plotStuff(m, summaryDF, threshold, "All", subFolder=subFolder)
-dev.off()
-
-df.sum.total <- df.sum
-
-
-###########################################
-# Just abs:
-IVs_abs <- c(IVs[grep("A\\d{3}",IVs)],IVs[grep("Sag",IVs)],IVs[grep("Aresid",IVs)])
-IVs_fl <- IVs[!(IVs %in% IVs_abs)]
-
-form <- formula(paste(responses, "~", paste(IVs_abs,collapse="+")))
-# m <- rpartScore(form,data=summaryDF,control=rpart.control(minsplit=40))
-# saveRDS(m, file=file.path(cached.path,"modeling_objects",subFolder,paste0("rpartScore_JUST_ABS",base.name,".rds")))
-m <- readRDS(file.path(cached.path,"modeling_objects",subFolder,paste0("rpartScore_JUST_ABS",base.name,".rds")))
-
-pdf(file.path("cached_figures","trees",subFolder,paste0('rpartOrdinal',base.name,"_","Abs",'.pdf')),width=11,height=8)
-  df.sum <- plotStuff(m, summaryDF, threshold, "Abs", subFolder=subFolder)
-dev.off()
-df.sum.total <- bind_rows(df.sum.total, df.sum)
-
-###########################################
-# Just fluorescence:
-form <- formula(paste(responses, "~", paste(IVs_fl,collapse="+")))
-# m <- rpartScore(form,data=summaryDF,control=rpart.control(minsplit=40))
-# saveRDS(m, file=file.path(cached.path,"modeling_objects",subFolder,paste0("rpartScore_JUST_FL",base.name,".rds")))
-m <- readRDS(file.path(cached.path,"modeling_objects",subFolder,paste0("rpartScore_JUST_FL",base.name,".rds")))
-pdf(file.path("cached_figures","trees",subFolder,paste0('rpartOrdinal',base.name,"_","Fl",'.pdf')),width=11,height=8)
-  df.sum <- plotStuff(m, summaryDF, threshold, "Fl", base.name, subFolder=subFolder)
-dev.off()
-df.sum.total <- bind_rows(df.sum.total, df.sum)
-
-
-###################################################
-
-for(model.text in c("All","Abs","Fl")){
-  if(model.text == "All"){
-    form <- formula(paste(responses, "~", paste(IVs,collapse="+")))
-  } else if (model.text == "Abs"){
-    form <- formula(paste(responses, "~", paste(IVs_abs,collapse="+")))
+  subFolder <- subFolders[job]
+  base.name <- base.names[job]
+  
+  summaryDF <- readRDS(file.path(cached.path,"7_process_summarize_optics","rds",paste0("summary",base.name,".rds")))
+  summaryDF <- summaryDF[!is.na(summaryDF$contamination_rank),]
+  
+  na.info.list <- na.info(summaryDF)
+  
+  if(job %in% c(1,3)){
+    rmRows <- unique(c(which(summaryDF$CAGRnumber %in% na.info.list$na.rows),na.info.list$inf.rows))
+    summaryDF <- summaryDF[-rmRows,]
   } else {
-    form <- formula(paste(responses, "~", paste(IVs_fl,collapse="+")))
+    rmCols <- which(names(summaryDF) %in% unique(c(na.info.list$na.cols.partial, na.info.list$inf.cols)))
+    summaryDF <- summaryDF[,-rmCols]
   }
   
-  for(j in c('Fall','Summer','Spring','Winter')){
-    subDF <- filter(summaryDF, Season != j)
-  
-    # m <- rpartScore(form,data=subDF,control=rpart.control(minsplit=40))
-    # saveRDS(m, file=file.path(cached.path,"modeling_objects",subFolder,paste0("rpartScore_NO",j,"_",model.text,base.name,".rds")))
-    m <- readRDS(file.path(cached.path,"modeling_objects",subFolder,paste0("rpartScore_NO",j,"_",model.text,base.name,".rds")))
-    eventDF <- filter(summaryDF, Season == j)
-    df.sum <- plotStuff(m, summaryDF, threshold, paste0("No",j,"_",model.text), base.name, eventDF, subFolder)
-    df.sum.total <- bind_rows(df.sum.total, df.sum)
-  }
+  IVs <- names(summaryDF)[which(names(summaryDF) == "OB1"):length(names(summaryDF))]
   
   
-  #######
-  # Pull out 1 state
+  form <- formula(paste(responses, "~", paste(IVs,collapse="+")))
+  m <- rpartScore(form,data=summaryDF,control=rpart.control(minsplit=40))
+  saveRDS(m, file=file.path(cached.path,"modeling_objects",subFolder,paste0("rpartScore",base.name,".rds")))
+  m <- readRDS(file.path(cached.path,"modeling_objects",subFolder,paste0("rpartScore",base.name,".rds")))
   
-  for(j in c('WI','MI','NY')){
-    subDF <- filter(summaryDF, State != j)
-    eventDF <- filter(summaryDF, State == j)
-    # m <- rpartScore(form,data=subDF,control=rpart.control(minsplit=40))
-    # saveRDS(m, file=file.path(cached.path,"modeling_objects",subFolder,paste0("rpartScore_NO",j,"_",model.text,base.name,".rds")))
-    m <- readRDS(file.path(cached.path,"modeling_objects",subFolder,paste0("rpartScore_NO",j,"_",model.text,base.name,".rds")))
-    df.sum <- plotStuff(m, summaryDF, threshold, paste0("No",j,"_",model.text), base.name, eventDF, subFolder)
-    df.sum.total <- bind_rows(df.sum.total, df.sum)
-  }
-}
+  pdf(file.path("cached_figures","trees",subFolder,paste0('rpartOrdinal',base.name,"_","All",'.pdf')),width=11,height=8)
+    df.sum <- plotStuff(m, summaryDF, threshold, "All", subFolder=subFolder)
+  dev.off()
   
+  df.sum.total <- df.sum
+  
+  ###########################################
+  # Just abs:
+  IVs_abs <- c(IVs[grep("A\\d{3}",IVs)],IVs[grep("Sag",IVs)],IVs[grep("Aresid",IVs)])
+  IVs_fl <- IVs[!(IVs %in% IVs_abs)]
+  
+  form <- formula(paste(responses, "~", paste(IVs_abs,collapse="+")))
+  m <- rpartScore(form,data=summaryDF,control=rpart.control(minsplit=40))
+  saveRDS(m, file=file.path(cached.path,"modeling_objects",subFolder,paste0("rpartScore_JUST_ABS",base.name,".rds")))
+  m <- readRDS(file.path(cached.path,"modeling_objects",subFolder,paste0("rpartScore_JUST_ABS",base.name,".rds")))
+  
+  pdf(file.path("cached_figures","trees",subFolder,paste0('rpartOrdinal',base.name,"_","Abs",'.pdf')),width=11,height=8)
+    df.sum <- plotStuff(m, summaryDF, threshold, "Abs", subFolder=subFolder)
+  dev.off()
+  df.sum.total <- bind_rows(df.sum.total, df.sum)
 
-for(model.text in c("All","Abs","Fl")){
-  if(model.text == "All"){
-    form <- formula(paste(responses, "~", paste(IVs,collapse="+")))
-  } else if (model.text == "Abs"){
-    form <- formula(paste(responses, "~", paste(IVs_abs,collapse="+")))
-  } else {
-    form <- formula(paste(responses, "~", paste(IVs_fl,collapse="+")))
-  }
+  ###########################################
+  # Just fluorescence:
+  form <- formula(paste(responses, "~", paste(IVs_fl,collapse="+")))
+  m <- rpartScore(form,data=summaryDF,control=rpart.control(minsplit=40))
+  saveRDS(m, file=file.path(cached.path,"modeling_objects",subFolder,paste0("rpartScore_JUST_FL",base.name,".rds")))
+  m <- readRDS(file.path(cached.path,"modeling_objects",subFolder,paste0("rpartScore_JUST_FL",base.name,".rds")))
+  pdf(file.path("cached_figures","trees",subFolder,paste0('rpartOrdinal',base.name,"_","Fl",'.pdf')),width=11,height=8)
+    df.sum <- plotStuff(m, summaryDF, threshold, "Fl", subFolder=subFolder)
+  dev.off()
+  df.sum.total <- bind_rows(df.sum.total, df.sum)
+
+
+  ###################################################
   
-  #######
-  # Pull out 1 state and 1 event
-  
-  for(j in c('WI','MI','NY')){
-    pdf(file.path("cached_figures","trees",subFolder,paste0('rpartOrdinal',base.name,"_Only",j,"_",model.text,'.pdf')),width=11,height=8)
+  for(model.text in c("All","Abs","Fl")){
+    if(model.text == "All"){
+      form <- formula(paste(responses, "~", paste(IVs,collapse="+")))
+    } else if (model.text == "Abs"){
+      form <- formula(paste(responses, "~", paste(IVs_abs,collapse="+")))
+    } else {
+      form <- formula(paste(responses, "~", paste(IVs_fl,collapse="+")))
+    }
     
-    subDF <- filter(summaryDF, State == j)
+    for(j in c('Fall','Summer','Spring','Winter')){
+      subDF <- filter(summaryDF, Season != j)
     
-    bigE <- group_by(subDF, eventNum) %>%
-      summarise(nObs = n()) %>%
-      arrange(desc(nObs)) %>%
-      filter(nObs >= 15)
-    
-    for(k in bigE$eventNum){
-      eventDF <- filter(subDF, eventNum == k)
-      subDF_sub <- filter(subDF, eventNum != k)
+      m <- rpartScore(form,data=subDF,control=rpart.control(minsplit=40))
+      saveRDS(m, file=file.path(cached.path,"modeling_objects",subFolder,paste0("rpartScore_NO",j,"_",model.text,base.name,".rds")))
+      m <- readRDS(file.path(cached.path,"modeling_objects",subFolder,paste0("rpartScore_NO",j,"_",model.text,base.name,".rds")))
+      eventDF <- filter(summaryDF, Season == j)
       
-      m <- rpartScore(form,data=subDF_sub,control=rpart.control(minsplit=40))
-      saveRDS(m, file=file.path(cached.path,"modeling_objects",subFolder,paste0("rpartScore_Only",j,"_No_",k,"_",model.text,base.name,".rds")))
-      m <- readRDS(file.path(cached.path,"modeling_objects",subFolder,paste0("rpartScore_Only",j,"_No_",k,"_",model.text,base.name,".rds")))
+      pdf(file.path("cached_figures","trees",subFolder,paste0('rpartOrdinal',base.name,"No_",j,"_",model.text,'.pdf')),width=11,height=8)
+        df.sum <- plotStuff(m, summaryDF, threshold, paste0("No",j,"_",model.text), eventDF = eventDF, subFolder = subFolder)
+      dev.off()
       
-      df.sum <- plotStuff_noSave(m, subDF_sub, threshold, paste0("Only",j,"_No_",k,"_",model.text), base.name, eventDF, subFolder)
       df.sum.total <- bind_rows(df.sum.total, df.sum)
     }
-  dev.off()
+    
+    
+    #######
+    # Pull out 1 state
+    
+    for(j in c('WI','MI','NY')){
+      subDF <- filter(summaryDF, State != j)
+      eventDF <- filter(summaryDF, State == j)
+      m <- rpartScore(form,data=subDF,control=rpart.control(minsplit=40))
+      saveRDS(m, file=file.path(cached.path,"modeling_objects",subFolder,paste0("rpartScore_NO",j,"_",model.text,base.name,".rds")))
+      m <- readRDS(file.path(cached.path,"modeling_objects",subFolder,paste0("rpartScore_NO",j,"_",model.text,base.name,".rds")))
+      
+      pdf(file.path("cached_figures","trees",subFolder,paste0('rpartOrdinal',base.name,"No_",j,"_",model.text,'.pdf')),width=11,height=8)
+        df.sum <- plotStuff(m, summaryDF, threshold, paste0("No",j,"_",model.text), eventDF = eventDF, subFolder = subFolder)
+      dev.off()
+      df.sum.total <- bind_rows(df.sum.total, df.sum)
+    }
   }
-}
 
-write.csv(df.sum.total, file.path("cached_figures","trees",subFolder,"summaryTreeResults.csv"),row.names = FALSE,quote=FALSE)
+  for(model.text in c("All","Abs","Fl")){
+    if(model.text == "All"){
+      form <- formula(paste(responses, "~", paste(IVs,collapse="+")))
+    } else if (model.text == "Abs"){
+      form <- formula(paste(responses, "~", paste(IVs_abs,collapse="+")))
+    } else {
+      form <- formula(paste(responses, "~", paste(IVs_fl,collapse="+")))
+    }
+    
+    #######
+    # Pull out 1 state and 1 event
+    
+    for(j in c('WI','MI','NY')){
+      pdf(file.path("cached_figures","trees",subFolder,paste0('rpartOrdinal',base.name,"_Only",j,"_",model.text,'.pdf')),width=11,height=8)
+      
+      subDF <- filter(summaryDF, State == j)
+      
+      bigE <- group_by(subDF, eventNum) %>%
+        summarise(nObs = n()) %>%
+        arrange(desc(nObs)) %>%
+        filter(nObs >= 15)
+      
+      for(k in bigE$eventNum){
+        eventDF <- filter(subDF, eventNum == k)
+        subDF_sub <- filter(subDF, eventNum != k)
+        
+        m <- rpartScore(form,data=subDF_sub,control=rpart.control(minsplit=40))
+        saveRDS(m, file=file.path(cached.path,"modeling_objects",subFolder,paste0("rpartScore_Only",j,"_No_",k,"_",model.text,base.name,".rds")))
+        m <- readRDS(file.path(cached.path,"modeling_objects",subFolder,paste0("rpartScore_Only",j,"_No_",k,"_",model.text,base.name,".rds")))
+        
+        df.sum <- plotStuff(m, subDF_sub, threshold, paste0("Only",j,"_No_",k,"_",model.text), eventDF = eventDF, subFolder = subFolder)
+        df.sum.total <- bind_rows(df.sum.total, df.sum)
+      }
+    dev.off()
+    }
+  }
+  write.csv(df.sum.total, file.path("cached_figures","trees",subFolder,"summaryTreeResults.csv"),row.names = FALSE,quote=FALSE)
+  
+}
 
 
 
