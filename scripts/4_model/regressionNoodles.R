@@ -198,7 +198,6 @@ plotStuff <- function(m, summaryDF, threshold, model.type, eventDF=NA, subFolder
   write.csv(importVars, file.path("cached_figures","trees",subFolder,paste0("treeSummary_",model.type,".csv")), row.names = FALSE,quote=FALSE)
   return(df.sum)
 }
-
 na.info <- function(df, key = "CAGRnumber", first.col = "OB1"){
   key.index <- which(names(df) == key)
   opt.df <- df[,c(key.index,which(names(df) == first.col):ncol(df))]
@@ -208,15 +207,24 @@ na.info <- function(df, key = "CAGRnumber", first.col = "OB1"){
   na.cols.partial <- colnames(df.NA)[ apply(df.NA, 2, anyNA) ]
   na.rows <- df.NA[[key]]
   
-  inf.cols <- names(opt.df)[unlist(do.call(data.frame,lapply(opt.df, function(x) any(is.infinite(x)))))]
+  inf.cols <- names(opt.df)[unlist(do.call(data.frame,lapply(opt.df,
+                                                             function(x) any(is.infinite(x)))))]
   inf.rows <- which(is.infinite(rowSums(opt.df[-1])))
+  
+  nan.cols <- names(opt.df)[unlist(do.call(data.frame,lapply(opt.df,
+                                                             function(x) any(is.nan(x)))))]
+  nan.rows <- which(is.nan(rowSums(opt.df[-1])))
   
   return(list(na.cols.full = na.cols.full,
               na.cols.partial = na.cols.partial,
               na.rows = na.rows,
               inf.cols = inf.cols,
-              inf.rows = inf.rows))
+              inf.rows = inf.rows,
+              nan.cols = nan.cols,
+              nan.rows = nan.rows))
 }
+
+
 
 ###########################################
 # All the things!
@@ -229,7 +237,7 @@ responses <- "contamination_rank"
 subFolders <- c("allCols","allRows","allCols_noWW","allRows_noWW")
 base.names <- c("_noQA","_noQA","_noWW_noQA","_noWW_noQA")
 
-for(job in 2:4){
+for(job in 1:4){
 
   subFolder <- subFolders[job]
   base.name <- base.names[job]
@@ -240,10 +248,14 @@ for(job in 2:4){
   na.info.list <- na.info(summaryDF)
   
   if(job %in% c(1,3)){
-    rmRows <- unique(c(which(summaryDF$CAGRnumber %in% na.info.list$na.rows),na.info.list$inf.rows))
+    rmRows <- unique(c(which(summaryDF$CAGRnumber %in% na.info.list$na.rows),
+                       na.info.list$nan.rows,
+                       na.info.list$inf.rows))
     summaryDF <- summaryDF[-rmRows,]
   } else {
-    rmCols <- which(names(summaryDF) %in% unique(c(na.info.list$na.cols.partial, na.info.list$inf.cols)))
+    rmCols <- which(names(summaryDF) %in% unique(c(na.info.list$na.cols.partial, 
+                                                   na.info.list$inf.cols,
+                                                   na.info.list$nan.cols)))
     summaryDF <- summaryDF[,-rmCols]
   }
   

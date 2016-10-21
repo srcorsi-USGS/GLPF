@@ -60,19 +60,29 @@ na.info <- function(df, key = "CAGRnumber", first.col = "OB1"){
   na.cols.partial <- colnames(df.NA)[ apply(df.NA, 2, anyNA) ]
   na.rows <- df.NA[[key]]
   
-  inf.cols <- names(opt.df)[unlist(do.call(data.frame,lapply(opt.df, function(x) any(is.infinite(x)))))]
+  inf.cols <- names(opt.df)[unlist(do.call(data.frame,lapply(opt.df,
+                                                             function(x) any(is.infinite(x)))))]
   inf.rows <- which(is.infinite(rowSums(opt.df[-1])))
+  
+  nan.cols <- names(opt.df)[unlist(do.call(data.frame,lapply(opt.df,
+                                                             function(x) any(is.nan(x)))))]
+  nan.rows <- which(is.nan(rowSums(opt.df[-1])))
   
   return(list(na.cols.full = na.cols.full,
               na.cols.partial = na.cols.partial,
               na.rows = na.rows,
               inf.cols = inf.cols,
-              inf.rows = inf.rows))
+              inf.rows = inf.rows,
+              nan.cols = nan.cols,
+              nan.rows = nan.rows))
 }
+
 
 na.info.list <- na.info(summaryDF)
 
-rmRows <- unique(c(which(summaryDF$CAGRnumber %in% na.info.list$na.rows),na.info.list$inf.rows))
+rmRows <- unique(c(which(summaryDF$CAGRnumber %in% na.info.list$na.rows),
+                   na.info.list$nan.rows,
+                   na.info.list$inf.rows))
 summaryDF <- summaryDF[-rmRows,]
 
 df.NA <- summaryDF %>% 
