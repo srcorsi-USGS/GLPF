@@ -56,9 +56,9 @@ mergeTrackingBact <- function(raw.path, cached.path, cached.save){
   LachnoCensLevel <- 225
   entCensLevel <- 225
   eColiCensLevel <- 225
-  espCensLevel <- 225
-  ipaCensLevel <- 225
-  
+  espCensLevel <- 80
+  ipaCensLevel <- 200
+
   noDetectIndicators <- c('BLD','BLQ','0','<LRL',"ND")
 
   splitCens <- function(df, base.name, column.name, noDetectIndicators, censor.level){
