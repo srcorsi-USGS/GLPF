@@ -1,8 +1,10 @@
 library(USGSHydroOpt)
 library(dplyr)
+library(ggplot2)
 
 cached.path <- "cached_data"
-
+base.name <- "_noQA"
+  
 plotOpticalSummaries <- function(base.name, cached.path){
   
   dfall <- readRDS(file.path(cached.path,"5_process_filterData","rds",paste0("summary",base.name,".rds")))

@@ -3,6 +3,8 @@ library(party)
 library(partykit)
 library(rpartScore)
 library(dplyr)
+library(smwrBase)
+library(lubridate)
 
 cached.path <- "cached_data"
 base.name <- "_noQA"
@@ -193,8 +195,9 @@ plotStuff <- function(m, summaryDF, threshold, model.type, eventDF=NA, subFolder
     plotJitter_withModel(subDF, m.p, threshold, "contamination_rank", 
                          model.type,eventDF)
   }
-  
-  plot(as.party(m.p), tp_args=list(id=FALSE), main=model.type)
+  plot(m.p, main=model.type)
+  text(m.p)
+  # plot(as.party(m.p), tp_args=list(id=FALSE), main=model.type)
   write.csv(importVars, file.path("cached_figures","trees",subFolder,paste0("treeSummary_",model.type,".csv")), row.names = FALSE,quote=FALSE)
   return(df.sum)
 }
@@ -245,7 +248,11 @@ for(job in 1:4){
   summaryDF <- readRDS(file.path(cached.path,"7_process_summarize_optics","rds",paste0("summary",base.name,".rds")))
   summaryDF <- summaryDF[!is.na(summaryDF$contamination_rank),]
   
-  na.info.list <- na.info(summaryDF)
+  summaryDF <- summaryDF %>%
+    mutate(DecYear = decimal_date(pdate)) %>%
+    select(DecYear, everything())
+  
+  na.info.list <- na.info(summaryDF)  
   
   if(job %in% c(1,3)){
     rmRows <- unique(c(which(summaryDF$CAGRnumber %in% na.info.list$na.rows),
@@ -260,15 +267,14 @@ for(job in 1:4){
   }
   
   IVs <- names(summaryDF)[which(names(summaryDF) == "OB1"):length(names(summaryDF))]
-  
-  
-  form <- formula(paste(responses, "~", paste(IVs,collapse="+")))
+  IVs <- IVs[!(IVs %in% "DecYear")]
+  form <- formula(paste(responses, "~", paste("fourier(DecYear) +",paste(IVs,collapse="+"))))
   m <- rpartScore(form,data=summaryDF,control=rpart.control(minsplit=40))
-  saveRDS(m, file=file.path(cached.path,"modeling_objects",subFolder,paste0("rpartScore",base.name,".rds")))
-  m <- readRDS(file.path(cached.path,"modeling_objects",subFolder,paste0("rpartScore",base.name,".rds")))
+  saveRDS(m, file=file.path(cached.path,"modeling_objects","WithSinCos",subFolder,paste0("rpartScore",base.name,".rds")))
+  m <- readRDS(file.path(cached.path,"modeling_objects","WithSinCos",subFolder,paste0("rpartScore",base.name,".rds")))
   
-  pdf(file.path("cached_figures","trees",subFolder,paste0('rpartOrdinal',base.name,"_","All",'.pdf')),width=11,height=8)
-    df.sum <- plotStuff(m, summaryDF, threshold, "All", subFolder=subFolder)
+  pdf(file.path("cached_figures","trees","WithSinCos",subFolder,paste0('rpartOrdinal',base.name,"_","All",'.pdf')),width=11,height=8)
+    df.sum <- plotStuff(m, summaryDF, threshold, "All", subFolder=paste0("WithSinCos/",subFolder))
   dev.off()
   
   df.sum.total <- df.sum
@@ -278,10 +284,10 @@ for(job in 1:4){
   IVs_abs <- c(IVs[grep("A\\d{3}",IVs)],IVs[grep("Sag",IVs)],IVs[grep("Aresid",IVs)])
   IVs_fl <- IVs[!(IVs %in% IVs_abs)]
   
-  form <- formula(paste(responses, "~", paste(IVs_abs,collapse="+")))
+  form <- formula(paste(responses, "~", paste("fourier(DecYear) +",paste(IVs_abs,collapse="+"))))
   m <- rpartScore(form,data=summaryDF,control=rpart.control(minsplit=40))
-  saveRDS(m, file=file.path(cached.path,"modeling_objects",subFolder,paste0("rpartScore_JUST_ABS",base.name,".rds")))
-  m <- readRDS(file.path(cached.path,"modeling_objects",subFolder,paste0("rpartScore_JUST_ABS",base.name,".rds")))
+  saveRDS(m, file=file.path(cached.path,"modeling_objects","WithSinCos",subFolder,paste0("rpartScore_JUST_ABS",base.name,".rds")))
+  m <- readRDS(file.path(cached.path,"modeling_objects","WithSinCos",subFolder,paste0("rpartScore_JUST_ABS",base.name,".rds")))
   
   pdf(file.path("cached_figures","trees",subFolder,paste0('rpartOrdinal',base.name,"_","Abs",'.pdf')),width=11,height=8)
     df.sum <- plotStuff(m, summaryDF, threshold, "Abs", subFolder=subFolder)
@@ -290,7 +296,7 @@ for(job in 1:4){
 
   ###########################################
   # Just fluorescence:
-  form <- formula(paste(responses, "~", paste(IVs_fl,collapse="+")))
+  form <- formula(paste(responses, "~", paste("fourier(DecYear) +",paste(IVs_fl,collapse="+"))))
   m <- rpartScore(form,data=summaryDF,control=rpart.control(minsplit=40))
   saveRDS(m, file=file.path(cached.path,"modeling_objects",subFolder,paste0("rpartScore_JUST_FL",base.name,".rds")))
   m <- readRDS(file.path(cached.path,"modeling_objects",subFolder,paste0("rpartScore_JUST_FL",base.name,".rds")))
@@ -304,11 +310,11 @@ for(job in 1:4){
   
   for(model.text in c("All","Abs","Fl")){
     if(model.text == "All"){
-      form <- formula(paste(responses, "~", paste(IVs,collapse="+")))
+      form <- formula(paste(responses, "~", paste("fourier(DecYear) +",paste(IVs,collapse="+"))))
     } else if (model.text == "Abs"){
-      form <- formula(paste(responses, "~", paste(IVs_abs,collapse="+")))
+      form <- formula(paste(responses, "~", paste("fourier(DecYear) +",paste(IVs_abs,collapse="+"))))
     } else {
-      form <- formula(paste(responses, "~", paste(IVs_fl,collapse="+")))
+      form <- formula(paste(responses, "~", paste("fourier(DecYear) +",paste(IVs_fl,collapse="+"))))
     }
     
     for(j in c('Fall','Summer','Spring','Winter')){
