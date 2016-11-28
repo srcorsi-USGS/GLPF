@@ -81,10 +81,8 @@ summaryOpticalVariables <- function(cached.path, base.name, SummaryDir, cached.s
   }
 
   
-  dfOpt <- getRatios(dataSummary=dfOpt,
-                     sigs=ratioSignalsAbs,
-                     grnum="CAGRnumber",
-                     specifyOrder = TRUE,
+  dfOpt <- getRatios(dataSummary=dfOpt, sigs=ratioSignalsAbs,
+                     grnum="CAGRnumber", specifyOrder = TRUE,
                      ratioVars = orderRatios(ratioSignalsAbs))
   dfOpt <- getRatios(dataSummary=dfOpt,sigs=ratioSignalsSr,
                      grnum="CAGRnumber",specifyOrder = TRUE,
@@ -92,6 +90,11 @@ summaryOpticalVariables <- function(cached.path, base.name, SummaryDir, cached.s
   dfOpt <- getRatios(dataSummary=dfOpt,sigs=ratioSignalsSniff,
                      grnum="CAGRnumber",specifyOrder = TRUE,
                      ratioVars = orderRatios(ratioSignalsSniff))
+  dfOpt <- getRatios(dataSummary=dfOpt,sigs=c("Sn.1","Sn.2","Sn.3","Sn.4",
+                                              "Sn.5","Sn.6","Sn.7","Sn.8","Sn.9"),
+                     grnum="CAGRnumber", specifyOrder = TRUE,
+                     ratioVars = orderRatios(c("Sn.1","Sn.2","Sn.3","Sn.4",
+                                               "Sn.5","Sn.6","Sn.7","Sn.8","Sn.9")))
   
   dfOpt <- getRatiosBase(dataSummary=dfOpt,sigs=ratioSignalsAbs[ratioSignalsAbs != "A254"], 
                          baseSig = "A254",grnum="CAGRnumber",
