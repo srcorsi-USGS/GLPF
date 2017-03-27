@@ -36,7 +36,7 @@ plotJitter <- function(summaryDF, m.p, threshold, responses, title, log.response
        as.numeric(jitter(as.numeric(predict(m.p,newdata = summaryDF)))),
        col=summaryDF$colors,
        cex=summaryDF$sizes,
-       pch = summaryDF$shapes,
+       pch = summaryDF$shapes,las=1,tck=.01,
        main = title,xlab="obs",ylab="pred") 
        # xlim = c(0,7),ylim=c(0,7),
        # axes=FALSE)
@@ -215,7 +215,7 @@ plotJitter_withModel <- function(summaryDF, m.p, threshold, responses, title,
        as.numeric(jitter(as.numeric(predict(m.p,newdata = summaryDF)))),
        col = "lightgrey",
        cex = summaryDF$sizes,
-       pch = summaryDF$shapes,
+       pch = summaryDF$shapes,las=1,tck=.01,
        main = title,xlab="obs",ylab="pred") 
        # xlim = c(0,7),ylim=c(0,7),
        # axes=FALSE)
@@ -253,21 +253,30 @@ plotJitter_withModel <- function(summaryDF, m.p, threshold, responses, title,
 
 
 ###########################################
-# All the things!
 # threshold <- 2.5
 # responses <- "contamination_rank"
 # root.save <- "eventStuff"
+# log.responses <- FALSE
 
 # threshold <- 5
 # responses <- "ent"
 # root.save <- "eventsEnt"
 # log.responses <- TRUE
 
-threshold <- 5
-responses <- "ent"
-root.save <- "eventsEnt"
+# threshold <- 5
+# responses <- "ent"
+# root.save <- "eventsEnt"
+# log.responses <- TRUE
+
+threshold <- 3
+responses <- "ipaH"
+root.save <- "ipaH"
 log.responses <- TRUE
 
+# threshold <- 2.5
+# responses <- "contamination_rank"
+# root.save <- "includeDOTurb"
+# log.responses <- FALSE
 
 ###########################################
 # All:
@@ -289,10 +298,23 @@ for(job in 1:4){
   #   filter(!is.na(contamination_rank)) %>%
   #   mutate(contamination_rank = factor(contamination_rank))
 
+  # summaryDF <- summaryDF %>%
+  #   mutate(DecYear = decimal_date(pdate)) %>%
+  #   select(DecYear, everything()) %>%
+  #   filter(!is.na(ent))
+  
   summaryDF <- summaryDF %>%
     mutate(DecYear = decimal_date(pdate)) %>%
     select(DecYear, everything()) %>%
-    filter(!is.na(ent))
+    filter(project == "GLPF") %>%
+    filter(!is.na(ipaH))
+
+  # summaryDF <- summaryDF %>%
+  #   mutate(DecYear = decimal_date(pdate)) %>%
+  #   select(DecYear, DO, Turb, everything()) %>%
+  #   filter(!is.na(contamination_rank)) %>%
+  #   mutate(contamination_rank = factor(contamination_rank))
+  
   
   na.info.list <- na.info(summaryDF)  
   
@@ -327,6 +349,14 @@ for(job in 1:4){
     
     form.responses <- ifelse(log.responses, paste("log10(",responses,")"),responses)
     
+    # if(model.text == "All"){
+    #   form <- formula(paste(form.responses, "~", paste("fourier(DecYear) + DO + Turb +",paste(IVs,collapse="+"))))
+    # } else if (model.text == "Abs"){
+    #   form <- formula(paste(form.responses, "~", paste("fourier(DecYear) + DO + Turb +",paste(IVs_abs,collapse="+"))))
+    # } else {
+    #   form <- formula(paste(form.responses, "~", paste("fourier(DecYear) + DO + Turb +",paste(IVs_fl,collapse="+"))))
+    # }
+    
     if(model.text == "All"){
       form <- formula(paste(form.responses, "~", paste("fourier(DecYear) +",paste(IVs,collapse="+"))))
     } else if (model.text == "Abs"){
@@ -348,14 +378,12 @@ for(job in 1:4){
  
       if(!is.null(m)){
         df.sum <- plotStuff_party(m, subDF_sub, threshold, 
-                                  paste0("Ent Predict_",j,"_",model.text), eventDF = eventDF, 
+                                  paste0("Predict_",j,"_",model.text), eventDF = eventDF, 
                                   subFolder = file.path(root.save, subFolder), 
                                   responses = responses, log.responses=log.responses)
         
         df.sum.total <- bind_rows(df.sum.total, df.sum)        
       }
-
-
     }
     dev.off()
   }

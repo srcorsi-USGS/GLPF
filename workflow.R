@@ -46,6 +46,12 @@ source("scripts/2_process/summaryOpticalVariables.R", encoding = 'UTF-8')
 #' @examples
 #' summaryDF <- readRDS(file.path("cached_data","7_process_summarize_optics","rds",paste0("summary","_noQA",".rds")))
 
+
+source("scripts/2_process/newCategories.R", encoding = 'UTF-8')
+#' @examples
+#' summaryDF <- readRDS(file.path("cached_data","7_process_summarize_optics","rds",paste0("summary","_noQA",".rds")))
+
+
 summaryDF <- readRDS(file.path("cached_data","7_process_summarize_optics","rds",paste0("summary","_noQA",".rds")))
 dfabs <- readRDS(file.path("cached_data","5_process_filterData","rds","dfabs_noWW_noQA.rds"))
 dffl <- readRDS(file.path("cached_data","5_process_filterData","rds","dffl_noWW_noQA.rds"))
