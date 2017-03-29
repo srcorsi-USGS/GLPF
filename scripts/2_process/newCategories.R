@@ -70,10 +70,31 @@ newCategories <- function(cached.path, base.name, cached.save){
   sources[animal] <- 'Animal'
   sources[aTypical] <- 'Atypical human'
   sources[uncertain] <- 'Uncertain'
+  summaryDF$sourcesExtra <- sources
   
-  summaryDF$sources <- sources
+  human2 <- (summaryDF$lachno > 50000 & summaryDF$bacHum > 50000)
+  clean <- summaryDF$lachno < 1500 & summaryDF$bacHum < 1000
+  rl2hb <- summaryDF$lachno/summaryDF$bacHum
+  
+  human3 <- ifelse(!human2 & !clean & 
+                     rl2hb <= 4 & rl2hb > 0.25 &
+                     summaryDF$lachno > 1500 & 
+                     summaryDF$bacHum > 1000,TRUE,FALSE)
+  
+  human4 <- ifelse(!human2 & !clean & rl2hb > 4 & 
+                     summaryDF$bacHum > 7000,TRUE,FALSE)
+  
+  human <- human2 + human3 +human4
+  
+  animal <- ifelse(!human & !clean,TRUE,FALSE)
+
+  summaryDF$sources <- ifelse(human,'Human','')
+  summaryDF$sources <- ifelse(clean,'Uncontaminated',summaryDF$sources)
+  summaryDF$sources <- ifelse(animal,'Animal',summaryDF$sources)
+  
+  
   cr <- which(names(summaryDF)=="contamination_rank")
-  summaryDF <- summaryDF[,c(1:cr,ncol(summaryDF),(cr+1):(ncol(summaryDF)-1))]
+  summaryDF <- summaryDF[,c(1:cr,ncol(summaryDF)-1,ncol(summaryDF),(cr+1):(ncol(summaryDF)-2))]
   
   saveRDS(summaryDF,file=file.path(cached.path,cached.save,"rds",paste0("summary",base.name,".rds")))
   write.csv(summaryDF,file=file.path(cached.path,cached.save,paste0("summary",base.name,".csv")),row.names=FALSE)
