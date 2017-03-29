@@ -86,5 +86,5 @@ cached.save <- "8_process_new_categories"
 newCategories(cached.path, base.name, cached.save)
 base.name <- "_noWW_noQA"
 newCategories(cached.path, base.name, cached.save)
-base.name <- "_QA"
-newCategories(cached.path, base.name, cached.save)
+# base.name <- "_QA"
+# newCategories(cached.path, base.name, cached.save)

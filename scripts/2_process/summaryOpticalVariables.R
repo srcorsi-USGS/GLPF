@@ -127,5 +127,5 @@ cached.save <- "7_process_summarize_optics"
 summaryOpticalVariables(cached.path, base.name, SummaryDir, cached.save)
 base.name <- "_noWW_noQA"
 summaryOpticalVariables(cached.path, base.name, SummaryDir, cached.save)
-
-
+# base.name <- "_QA"
+# summaryOpticalVariables(cached.path, base.name, SummaryDir, cached.save)

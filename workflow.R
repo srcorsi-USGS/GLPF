@@ -49,7 +49,7 @@ source("scripts/2_process/summaryOpticalVariables.R", encoding = 'UTF-8')
 
 source("scripts/2_process/newCategories.R", encoding = 'UTF-8')
 #' @examples
-#' summaryDF <- readRDS(file.path("cached_data","7_process_summarize_optics","rds",paste0("summary","_noQA",".rds")))
+#' summaryDF <- readRDS(file.path("cached_data","8_process_new_categories","rds",paste0("summary","_noQA",".rds")))
 
 
 summaryDF <- readRDS(file.path("cached_data","7_process_summarize_optics","rds",paste0("summary","_noQA",".rds")))
