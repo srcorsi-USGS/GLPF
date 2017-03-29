@@ -47,13 +47,17 @@ mergeTrackingBact <- function(raw.path, cached.path, cached.save){
   
   df <- full_join(df, dfall)
 
-  df <- select(df, -lachno3cn100ml,
-               -qpcrBacHumanResults,-qpcrEnterococcusResults,-qpcrLachno2Results) %>%
+  df <- select(df, 
+               -qpcrBacHumanResults,
+               -qpcrEnterococcusResults,
+               -qpcrLachno2Results) %>%
     filter(CAGRnumber != "")
   # Deal with zeros and BLDs, convert to numeric
   
   BacHumCensLevel <- 225
   LachnoCensLevel <- 225
+  dogCensLevel <- 225
+  racoonCensLevel <- 225
   entCensLevel <- 225
   eColiCensLevel <- 225
   espCensLevel <- 80
@@ -70,11 +74,14 @@ mergeTrackingBact <- function(raw.path, cached.path, cached.save){
 
   df <- splitCens(df, "bacHum", "bachumcn100g", noDetectIndicators, BacHumCensLevel)
   df <- splitCens(df, "lachno", "lachnocn100g", noDetectIndicators, LachnoCensLevel)
+  df <- splitCens(df, "lachno3", "lachno3cn100ml", noDetectIndicators, LachnoCensLevel)
   df <- splitCens(df, "ent", "enterocn100g", noDetectIndicators, entCensLevel)
   df <- splitCens(df, "eColi", "ecolicn100g", noDetectIndicators, eColiCensLevel)
   df <- splitCens(df, "esp", "Esp2cn100ml", noDetectIndicators, espCensLevel)
   df <- splitCens(df, "ipaH", "ipaHcn100ml", noDetectIndicators, ipaCensLevel)
-
+  df <- splitCens(df, "dog_marker", "dog", noDetectIndicators, dogCensLevel)
+  df <- splitCens(df, "racoon_marker", "racoon", noDetectIndicators, racoonCensLevel)
+  
   df$Site<-substr(df$FilterB02µMUWMSFS,1,nchar(df$FilterB02µMUWMSFS)-3)
   
   df$FieldID <- df$FilterB02µMUWMSFS

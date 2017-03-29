@@ -29,10 +29,15 @@ getGoogleData <- function(cached.path, cached.save){
     dfState$entero.cn.100g <- suppressWarnings(as.character(dfState$entero.cn.100g))
     dfState$bachum.cn.100g <- suppressWarnings(as.character(dfState$bachum.cn.100g))
     dfState$lachno.cn.100g <- suppressWarnings(as.character(dfState$lachno.cn.100g))
+    dfState$lachno3.cn.100ml <- suppressWarnings(as.character(dfState$lachno3.cn.100ml))
     dfState$ecoli.cn.100g <- suppressWarnings(as.character(dfState$ecoli.cn.100g))
+    dfState$dog.cn.100ml <- suppressWarnings(as.character(dfState$dog.cn.100ml))
+    dfState$ecoli.cn.100g <- suppressWarnings(as.character(dfState$ecoli.cn.100g))
+    dfState$racoon.cn.100ml..relative.. <- suppressWarnings(as.character(dfState$racoon.cn.100ml..relative..))
     
-    dfState <- select(dfState, -racoon.cn.100ml..relative.., -dog.cn.100ml)
-    
+    dfState <- rename(dfState, 
+                      racoon=racoon.cn.100ml..relative..,
+                      dog = dog.cn.100ml)
     dfState$State <- gsub(' ','',dfState$State)
     
     if(i == 2) {
