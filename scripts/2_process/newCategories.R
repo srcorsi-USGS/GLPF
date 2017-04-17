@@ -72,6 +72,10 @@ newCategories <- function(cached.path, base.name, cached.save){
   sources[uncertain] <- 'Uncertain'
   summaryDF$sourcesExtra <- sources
   
+  # summaryDF$sourcesExtra[rowSums(!(is.na(summaryDF[,c("dog_marker","racoon_marker", "lachno3")]))) != 3] <- NA
+  # 
+  summaryDF$sourcesExtra[(is.na(summaryDF$lachno3))] <- NA
+  
   human2 <- (summaryDF$lachno > 50000 & summaryDF$bacHum > 50000)
   clean <- summaryDF$lachno < 1500 & summaryDF$bacHum < 1000
   rl2hb <- summaryDF$lachno/summaryDF$bacHum
