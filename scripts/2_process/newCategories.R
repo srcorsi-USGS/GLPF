@@ -101,6 +101,7 @@ newCategories <- function(cached.path, base.name, cached.save){
   summaryDF <- summaryDF[,c(1:cr,ncol(summaryDF)-1,ncol(summaryDF),(cr+1):(ncol(summaryDF)-2))]
   
   dir.create(file.path(cached.path,cached.save), showWarnings = FALSE)
+  dir.create(file.path(cached.path,cached.save,"rds"), showWarnings = FALSE)
   
   saveRDS(summaryDF,file=file.path(cached.path,cached.save,"rds",paste0("summary",base.name,".rds")))
   write.csv(summaryDF,file=file.path(cached.path,cached.save,paste0("summary",base.name,".csv")),row.names=FALSE)

@@ -52,7 +52,7 @@ source("scripts/2_process/newCategories.R", encoding = 'UTF-8')
 #' summaryDF <- readRDS(file.path("cached_data","8_process_new_categories","rds",paste0("summary","_noQA",".rds")))
 
 
-summaryDF <- readRDS(file.path("cached_data","7_process_summarize_optics","rds",paste0("summary","_noQA",".rds")))
+summaryDF <- readRDS(file.path("cached_data","8_process_new_categories","rds",paste0("summary","_noQA",".rds")))
 dfabs <- readRDS(file.path("cached_data","5_process_filterData","rds","dfabs_noWW_noQA.rds"))
 dffl <- readRDS(file.path("cached_data","5_process_filterData","rds","dffl_noWW_noQA.rds"))
 EEMS <- readRDS(file.path("cached_data","7_process_summarize_optics","rds","EEMs3D_noWW_noQA.rds"))

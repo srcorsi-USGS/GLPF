@@ -215,6 +215,7 @@ categorizeBacteria <- function(cached.path, base.name, cached.save){
     arrange(cat_num)
     
   dir.create(file.path(cached.path,cached.save), showWarnings = FALSE)
+  dir.create(file.path(cached.path,cached.save,"rds"), showWarnings = FALSE)
   
   meta.file(dfall, base.name)
   saveRDS(dfall,file=file.path(cached.path,cached.save,"rds",paste0("summary",base.name,'.rds')))
