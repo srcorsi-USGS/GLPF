@@ -105,6 +105,8 @@ mergeFieldOpt <- function(raw.path, cached.path, cached.save){
                              SampleType9regular2blank7replicate,
                              FilterAVolumemL,FilterBVolumemL,FilterAUSGSMIBARLVolumemL,FilterBUWMVolumemL,TotalAutoSamplerVolumeL)
   
+  dir.create(file.path(cached.path,cached.save), showWarnings = FALSE)
+  
   saveRDS(data.merge.check, file.path(cached.path,cached.save,"mergeCheck.rds"))
   
   merged.data <- data.merge[,names(data.merge)[!(names(data.merge) %in% names(data.merge.check))]]
@@ -119,6 +121,8 @@ mergeFieldOpt <- function(raw.path, cached.path, cached.save){
                        merged.data) %>%
     rename(SiteID=USGSNWISStationIDifapplicable,
            pedate = endDateTime)
+  
+  dir.create(file.path(cached.path,cached.save), showWarnings = FALSE)
   
   saveRDS(merged.data, file.path(cached.path,cached.save,"mergedData.rds"))
   

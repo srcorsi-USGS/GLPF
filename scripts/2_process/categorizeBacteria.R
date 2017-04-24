@@ -214,7 +214,7 @@ categorizeBacteria <- function(cached.path, base.name, cached.save){
     left_join(distinct(select(summaryDF, comboCat, cat_num)), by=c("Var1"="comboCat")) %>%
     arrange(cat_num)
     
-  
+  dir.create(file.path(cached.path,cached.save), showWarnings = FALSE)
   
   meta.file(dfall, base.name)
   saveRDS(dfall,file=file.path(cached.path,cached.save,"rds",paste0("summary",base.name,'.rds')))

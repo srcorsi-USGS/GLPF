@@ -24,6 +24,8 @@ mergeGLPF_GLRI_opt <- function(raw.path, raw.cleaned, cached.path, cached.save){
   dffl  <- bind_cols(dfflGLPF,dffl)
   dffl  <- dffl[,-which(names(dffl) == "exem")[-1]]
   
+  dir.create(file.path(cached.path,cached.save), showWarnings = FALSE)
+  
   saveRDS(dfabs, file = file.path(cached.path,cached.save, "dfabs.rds"))
   saveRDS(dffl, file = file.path(cached.path,cached.save, "dffl.rds"))
   

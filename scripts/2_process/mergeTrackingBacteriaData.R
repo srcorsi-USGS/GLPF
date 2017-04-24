@@ -109,7 +109,9 @@ mergeTrackingBact <- function(raw.path, cached.path, cached.save){
   }
 
   df <- df[!(df$CAGRnumber %in% c("x","N/A")),]
-    
+  
+  dir.create(file.path(cached.path,cached.save), showWarnings = FALSE)
+  
   saveRDS(df,file=file.path(cached.path,cached.save,'trackingBacteria.rds'))
   
 }

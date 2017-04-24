@@ -19,6 +19,7 @@ meta.file <- function(df, base.name, cached.save){
   metaData <- data.frame(variable = names(types),
                          dataType = types, stringsAsFactors = FALSE)
   metaData$description <- ""
+  dir.create(file.path(cached.path,cached.save), showWarnings = FALSE)
   write.csv(metaData, row.names = FALSE, file = file.path(cached.path,cached.save,paste0("meta",base.name,".csv")))
 }
 
@@ -47,6 +48,8 @@ filterData <- function(cached.path, cached.save){
   
   df_QA <-  filter(df, SampleType9regular2blank7replicate != 9)
   df_regular <- filter(df, SampleType9regular2blank7replicate == 9)
+  
+  dir.create(file.path(cached.path,cached.save), showWarnings = FALSE)
   
   write.csv(df_regular, file = file.path(cached.path,cached.save,"summary_noQA.csv"), row.names = FALSE)
   saveRDS(df_regular, file = file.path(cached.path,cached.save,"rds","summary_noQA.rds"))

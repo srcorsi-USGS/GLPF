@@ -44,6 +44,8 @@ openState <- function(raw.path, cached.path, cached.save){
   data.wi.field.opts <- select(data.wi.field.opts.full, FieldID, state, UVch1,UVch2,UVch3)
   data.wi.field <- select(data.wi.field.all, SAMPLE_START_DT, FieldID, WT, DO, Turb, SC, pH, UVch1, UVch2, UVch3)
   
+  dir.create(file.path(cached.path,cached.save), showWarnings = FALSE)
+  
   saveRDS(data.wi.field, file.path(cached.path,cached.save,"dataWI.rds"))
   saveRDS(filter(data.wi.field.opts.full, state == "WI"), file.path(cached.path,cached.save,"dataWI_allData.rds"))
   

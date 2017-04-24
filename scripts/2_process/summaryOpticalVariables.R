@@ -20,7 +20,9 @@ summaryOpticalVariables <- function(cached.path, base.name, SummaryDir, cached.s
   dffl <- readRDS(file.path(cached.path, "5_process_filterData", "rds",paste0("dffl",base.name,".rds")))
 
   EEMs3D <- VectorizedTo3DArray(dffl,"exem",grnum = "CAGRnumber")
-
+  
+  dir.create(file.path(cached.path,cached.save), showWarnings = FALSE)
+  
   saveRDS(EEMs3D,file=file.path(cached.path,cached.save,"rds",paste0("EEMs3D",base.name,".rds")))
 
   ##############################################################################################
@@ -115,6 +117,9 @@ summaryOpticalVariables <- function(cached.path, base.name, SummaryDir, cached.s
     distinct()
 
   meta.file(dfOpt, base.name, file.path(cached.path, cached.save))
+  
+  dir.create(file.path(cached.path,cached.save), showWarnings = FALSE)
+  
   saveRDS(dfOpt,file=file.path(cached.path,cached.save,"rds",paste0("summary",base.name,".rds")))
   write.csv(dfOpt,file=file.path(cached.path,cached.save,paste0("summary",base.name,".csv")),row.names=FALSE)
 
