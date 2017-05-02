@@ -241,7 +241,7 @@ plotJitter_withModel <- function(summaryDF, m.p, threshold, responses, title,
 
 
 #################################################################
-summaryDF <- readRDS(file.path("cached_data","8_process_new_categories","rds",paste0("summary","_noQA",".rds")))
+summaryDF <- readRDS(file.path("cached_data","8_process_new_categories","rds",paste0("summary",base.name <- "_noWW_noQA",".rds")))
 summaryDF <- filter(summaryDF, hydroCondition == "Base")
 
 na.info.list <- na.info(summaryDF)
