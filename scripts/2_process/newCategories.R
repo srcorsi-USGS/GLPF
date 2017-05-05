@@ -96,6 +96,16 @@ newCategories <- function(cached.path, base.name, cached.save){
   summaryDF$sources <- ifelse(clean,'Uncontaminated',summaryDF$sources)
   summaryDF$sources <- ifelse(animal,'Animal',summaryDF$sources)
   
+  summaryDF$sources2 <- ifelse(human,'Human','')
+  summaryDF$sources2 <- ifelse(human2,'HumanHigh',summaryDF$sources2)
+  summaryDF$sources2 <- ifelse(clean,'Uncontaminated',summaryDF$sources2)
+  summaryDF$sources2 <- ifelse(animal,'Animal',summaryDF$sources2)
+  summaryDF$sources2 <- ifelse(summaryDF$sources2 == "Animal" & 
+                              (summaryDF$bacHum > 7000 | summaryDF$lachno > 10000),
+                              "AnimalHigh",summaryDF$sources2)
+  summaryDF$sources2 <- ifelse(clean &
+                                 (summaryDF$bacHum <=225 & summaryDF$lachno <=225),
+                               "UncontaminatedLow",summaryDF$sources2)
   
   cr <- which(names(summaryDF)=="contamination_rank")
   summaryDF <- summaryDF[,c(1:cr,ncol(summaryDF)-1,ncol(summaryDF),(cr+1):(ncol(summaryDF)-2))]
