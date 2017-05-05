@@ -1,16 +1,21 @@
+## FOR MULTINOMIAL, IT CHOOSES DIFFERENT VARIABLES FOR EVERY LEVEL. 
+
+
 library(glmnet)
 
 setwd("D:/SRCData/R/GLPF/GLPFgit")
 source("../na.info.R")
 
-df.orig <- readRDS("./cached_data/8_process_new_categories/rds/summary_noWW_noQA.rds")
+#df.orig <- readRDS("./cached_data/8_process_new_categories/rds/summary_noWW_noQA.rds")
 
+df.orig <- summaryDF
 df <- df.orig
-df$response <- ifelse(df$sources=="Human",1,0)
-#df$response <- ifelse(df$eColi >= 500,1,0)
+df$response <- df$sources2
+df$response <- factor(df$response,levels=c("HumanHigh","Human", "Animal","Uncontaminated","UncontaminatedLow"))
+response <- "response"
 df <- df[-which(is.na(df$response)),]
 
-response <- "response"
+df <- df[,-dim(df)[2]]
 
 beginIV <- "OB1"
 endIV <- "logSn.9"
@@ -20,8 +25,7 @@ end <- which(names(df)==endIV)
 
 IVs <- names(df)[begin:end]
 
-df <- df[which(df$sources %in% c("Human","Uncontaminated")),]
-na.info.list <- na.info(df[,-dim(df)[-1]],first.col = beginIV)
+na.info.list <- na.info(df[,-dim(df)[2]],first.col = beginIV)
 rmRows <- unique(c(which(df$CAGRnumber %in% na.info.list$na.rows),
                    na.info.list$nan.rows,
                    na.info.list$inf.rows))
@@ -33,18 +37,13 @@ dfRemoved <- df[rmRows,]
 df <- df[-rmRows,]
 
 
-naInfo <- na.info(df)
-test <- df[-naInfo$inf.rows,]
-naInfoTest <- na.info(test)
-test <- test[-naInfo$nan.rows,]
-naInfoTest <- na.info(test)
 
 y <- df[,response]
 x <- as.matrix(df[,IVs])
 
-glm.family <- "binomial"
-mg.cv <- cv.glmnet(x=x, y=y,nfolds = 10,family=glm.family,alpha=1)
-mg <- glmnet(x=x, y=y,family=glm.family, alpha=1)
+glm.family <- "multinomial"
+mg.cv <- cv.glmnet(x=x, y=y,nfolds = 10,family=glm.family)
+mg <- glmnet(x=x, y=y,family=glm.family)
 
 #Extract Coefficients from cv-determined model
 Coefficients <- coef(mg, s = mg.cv$lambda.min)
@@ -70,13 +69,9 @@ plotpch <- ifelse(df$eventNum=='WI12',18,plotpch)
 
 #plotcolors <- round(as.numeric(predictions)) + 2
 #plotpch <- 20
-thresh <- 0.55
+thresh <- 0.4
 plot(jitter(df[,response]),predictions,col=plotcolors,pch=plotpch)
-plot(jitter(df[,response]),jitter(as.numeric(predictions>thresh)),
-     col=plotcolors,pch=plotpch,xlab="",ylab="",main="E. coli, GLPF")
-mtext("Predicted",side=2,line=2,font=2)
-mtext("Observed",side=1,line=2,font=2)
-
+plot(jitter(df[,response]),jitter(as.numeric(predictions>thresh)),col=plotcolors,pch=plotpch)
 
 legendNames <- c(names(plotCol),'Sewage','Fall WI')
 legend('topleft',legend = legendNames,col=c(plotCol,'brown4','orange'),pch=c(1,1,1,20,18))
