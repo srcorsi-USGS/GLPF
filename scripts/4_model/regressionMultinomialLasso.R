@@ -46,68 +46,72 @@ mg <- glmnet(x=x, y=y,family=glm.family)
 
 #Extract Coefficients from cv-determined model
 Coefficients <- coef(mg, s = mg.cv$lambda.min)
-for(i in 1:length(levels(y)))
-  Betas <- Coefficients[[i]]
-Betas[which(Betas != 0)]
+# for(i in 1:length(levels(y)))
+#   Betas <- Coefficients[[i]]
+# Betas[which(Betas != 0)]
 
 Coefficients <- coef(mg, s = mg.cv$lambda.1se)
-Active.Index <- which(Coefficients != 0)
-Active.Coefficients <- Coefficients[Active.Index];Active.Coefficients
-Active.Coef.names <- row.names(coef(mg.cv))[Active.Index];Active.Coef.names
-#model.coefficients <- c(model.coefficients,paste(Active.Coef.names,collapse="+"))
-eventNumbers <- c(eventNumbers,events[j])
+# Active.Index <- which(Coefficients != 0)
+# Active.Coefficients <- Coefficients[Active.Index];Active.Coefficients
+# Active.Coef.names <- row.names(coef(mg.cv))[Active.Index];Active.Coef.names
+# eventNumbers <- c(eventNumbers,events[j])
 
 predictions <- predict(mg.cv,newx=as.matrix(df[,IVs]),s=c("lambda.1se"),type = "response")
+predictionsCat <- sapply(X = predictions,FUN = which.max)
 
-#Plot cross validated errors and other model results
-plot(mg.cv)
+#ALL PREDICTIONS = UNCONTAMINATEDlOW. NOT A USEFUL MODEL!!!
 
-plotCol <- c('red','green','blue')
-names(plotCol) <- c('WI','MI','NY')
-plotcolors <- plotCol[df$State]
-plotcolors <- ifelse(df$sampleCat1=='sewage','brown4',plotcolors)
-plotpch <- ifelse(df$sampleCat1=='sewage',20,1)
-plotcolors <- ifelse(df$eventNum=='WI12', "orange",plotcolors)
-plotpch <- ifelse(df$eventNum=='WI12',18,plotpch)
-
-#plotcolors <- round(as.numeric(predictions)) + 2
-#plotpch <- 20
-thresh <- 0.4
-plot(jitter(df[,response]),predictions,col=plotcolors,pch=plotpch)
-plot(jitter(df[,response]),jitter(as.numeric(predictions>thresh)),col=plotcolors,pch=plotpch)
-
-legendNames <- c(names(plotCol),'Sewage','Fall WI')
-legend('topleft',legend = legendNames,col=c(plotCol,'brown4','orange'),pch=c(1,1,1,20,18))
-mtext(response,line=1)
-mtext(paste(Active.Coef.names[-1],collapse=' + '),cex=0.7)
-mtext(events[i],line=2)
+#TEST BELOW WITH ORDINAL MULTINOMIAL MODELING APPROACH USING glmnet.cr
 
 
+# #Plot cross validated errors and other model results
+# plot(mg.cv)
+# 
+# # Plot results to examine true and false predictions using a decision threshold
+# plotCol <- c('red','green','blue')
+# names(plotCol) <- c('WI','MI','NY')
+# plotcolors <- plotCol[df$State]
+# plotcolors <- ifelse(df$sampleCat1=='sewage','brown4',plotcolors)
+# plotpch <- ifelse(df$sampleCat1=='sewage',20,1)
+# plotcolors <- ifelse(df$eventNum=='WI12', "orange",plotcolors)
+# plotpch <- ifelse(df$eventNum=='WI12',18,plotpch)
+# 
+# thresh <- 0.4 #Define decision threshold
+# plot(jitter(df[,response]),predictions,col=plotcolors,pch=plotpch)
+# plot(jitter(df[,response]),jitter(as.numeric(predictions>thresh)),col=plotcolors,pch=plotpch)
+# 
+# legendNames <- c(names(plotCol),'Sewage','Fall WI')
+# legend('topleft',legend = legendNames,col=c(plotCol,'brown4','orange'),pch=c(1,1,1,20,18))
+# mtext(response,line=1)
+# mtext(paste(Active.Coef.names[-1],collapse=' + '),cex=0.7)
+# mtext(events[i],line=2)
+# 
+# 
+# 
+# # Predict on all data using logistic regression for just Human vs Uncontaminated
+# df.orig$response <- ifelse(df.orig$sources == "Human",1,0)
+# predictions.orig  <- predict(mg.cv,newx=as.matrix(df.orig[,IVs]),s=c("lambda.1se"),type = "response")
+# 
+# plotCol <- c('red','green','blue')
+# plotColSources <- c("orange","darkorchid1","springgreen4","blue","firebrick","yellow4")
+# names(plotColSources) <- c("HumanHigh","Human", "AnimalHigh", "Animal","Uncontaminated","UncontaminatedLow")
+# 
+# names(plotCol) <- c('WI','MI','NY')
+# plotcolors <- plotCol[df.orig$State]
+# plotcolors <- ifelse(df.orig$sampleCat1=='sewage','brown4',plotcolors)
+# plotpch <- ifelse(df.orig$sampleCat1=='sewage',20,1)
+# plotcolors <- ifelse(df.orig$eventNum=='WI12', "orange",plotcolors)
+# plotpch <- ifelse(df.orig$eventNum=='WI12',18,plotpch)
+# 
+# plot(jitter(df.orig[,response]),jitter(as.numeric(predictions.orig)),col=plotcolors,pch=plotpch)
+# plot(jitter(df.orig[,response]),jitter(as.numeric(predictions.orig>thresh)),col=plotcolors,pch=plotpch)
+# 
+# plotcolors <- plotColSources[summaryDF$sources2]
+# plot(jitter(df.orig[,response]),jitter(as.numeric(predictions.orig>thresh)),col=plotcolors,pch=plotpch)
+# legend("top",legend = names(plotColSources),col=plotColSources,pch=1)
 
-# Predict on all data using logistic regression for just Human vs Uncontaminated
-df.orig$response <- ifelse(df.orig$sources == "Human",1,0)
-predictions.orig  <- predict(mg.cv,newx=as.matrix(df.orig[,IVs]),s=c("lambda.1se"),type = "response")
 
-plotCol <- c('red','green','blue')
-plotColSources <- c("orange","darkorchid1","springgreen4","blue","firebrick","yellow4")
-names(plotColSources) <- c("HumanHigh","Human", "AnimalHigh", "Animal","Uncontaminated","UncontaminatedLow")
-
-names(plotCol) <- c('WI','MI','NY')
-plotcolors <- plotCol[df.orig$State]
-plotcolors <- ifelse(df.orig$sampleCat1=='sewage','brown4',plotcolors)
-plotpch <- ifelse(df.orig$sampleCat1=='sewage',20,1)
-plotcolors <- ifelse(df.orig$eventNum=='WI12', "orange",plotcolors)
-plotpch <- ifelse(df.orig$eventNum=='WI12',18,plotpch)
-
-plot(jitter(df.orig[,response]),jitter(as.numeric(predictions.orig)),col=plotcolors,pch=plotpch)
-plot(jitter(df.orig[,response]),jitter(as.numeric(predictions.orig>thresh)),col=plotcolors,pch=plotpch)
-
-plotcolors <- plotColSources[summaryDF$sources2]
-plot(jitter(df.orig[,response]),jitter(as.numeric(predictions.orig>thresh)),col=plotcolors,pch=plotpch)
-legend("top",legend = names(plotColSources),col=plotColSources,pch=1)
-
-
-######### Ordinal Continuation Ratio models  ################################
+######### glmnet.cr: Ordinal Continuation Ratio models using the Lasso ######
 #  https://cran.r-project.org/web/packages/glmnetcr/vignettes/glmnetcr.pdf
 #
 #############################################################################
@@ -115,22 +119,7 @@ legend("top",legend = names(plotColSources),col=plotColSources,pch=1)
 library(glmnetcr)
 library(dplyr)
 
-
-# m <- glmnet.cr(x = x,y = y,alpha=1)
-# print(m)
-# summary(m)
-# BIC.model <- select.glmnet.cr(fit=m,which = "BIC")
-# mFit <- fitted(m, s = BIC.model)
-# 
-# fit <- glmnet.cr(x, y, method = "forward")
-# hat<-fitted(fit$class, s = BIC.model)
-# 
-# table(hat,y)
-# 
-# 
-# 
-# nonzero.glmnet.cr(fit=m,s = BIC.model)
-
+#Fit Lasso model
 y <- df[,response]
 x <- as.matrix(df[,IVs])
 
@@ -139,9 +128,10 @@ m <- glmnet.cr(x, y)
 BIC.step <- select.glmnet.cr(m)
 mFit<-fitted(m, s = BIC.step)
 names(mFit)
-#[1] "BIC" "AIC" "class" "probs"
 table(mFit$class, y)
 
+
+#Plot overal fit of model
 predicted <- factor(mFit$class,
                     levels = 
                       c("UncontaminatedLow","Uncontaminated", "Animal","Human","HumanHigh")) %>%
@@ -183,12 +173,15 @@ shell.exec(filenm)
 ##########################################################################################
 # Remove all variables except those in the model, re-filter dataframe and refit model
 ##########################################################################################
-
+# Determine variables in Lasso model from above
 BetasNames <- grep('cp',names(nonzero.glmnet.cr(m, s = BIC.step)$beta),value=TRUE,invert = TRUE)
 
+# Transform and filter data appropriately for modeling
 df <- df.orig
 df$response <- df$sources2
 df <- df[,c(response,"CAGRnumber","eventNum",BetasNames)]
+
+# transform response variable to factor
 df$response <- factor(df$response,levels=
                         c("UncontaminatedLow","Uncontaminated", "Animal","Human","HumanHigh"))
 response <- "response"
@@ -196,6 +189,7 @@ df <- df[-which(is.na(df$response)),]
 
 IVs <- BetasNames
 
+#Remove rows with NA or Inf
 na.info.list <- na.info(df,first.col = BetasNames[1])
 rmRows <- unique(c(which(df$CAGRnumber %in% na.info.list$na.rows),
                    na.info.list$nan.rows,
@@ -204,18 +198,21 @@ dfRemoved <- df[rmRows,]
 df <- df[-rmRows,]
 
 
-
+#Define response and independent variables
 y <- df[,response]
 x <- as.matrix(df[,IVs])
 
-m <- glmnet.cr(x, y)
+#Fit the model
+m <- glmnet.cr(x, y,alpha=1)
 
+#Variable selection of Lasso model using BIC
 BIC.step <- select.glmnet.cr(m)
 mFit<-fitted(m, s = BIC.step)
 names(mFit)
-#[1] "BIC" "AIC" "class" "probs"
 table(mFit$class, y)
 
+
+#Plot overal fit of model
 predicted <- factor(mFit$class,
                     levels = 
                       c("UncontaminatedLow","Uncontaminated", "Animal","Human","HumanHigh")) %>%
