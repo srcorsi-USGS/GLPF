@@ -8,8 +8,8 @@
 # that provide as compared to other signals
 
 # Modeling approaches:
-# -Ordinal LASSO using glmnet.cr with "sources2" as response
 # -stepwise regression using Lachno and/or bacHum as response
+# -Ordinal LASSO using glmnet.cr with "sources2" as response
 # -Multi-response LASSO using both human markers with glmnet
 
 library(glmnet)
@@ -35,12 +35,21 @@ dfSignals <- read.csv("./scripts/4_model/HeuristicIVs.csv",stringsAsFactors = FA
 dfEvents <- read.csv("./scripts/4_model/eventFreqAndDates.csv",stringsAsFactors = FALSE)
 
 eventGroups <- dfEvents %>% group_by(EventGroup) %>%
-  summarise( Observations = sum(Freq))
+  summarise( Observations = sum(Freq)) %>%
+  as.data.frame()
 
-which(eventGroups$Observations>=20)
+modelGroups <- eventGroups[which(eventGroups$Observations>=20),"EventGroup"]
+
+groupEventList <- list()
+groupHydroCond <- list()
+for(i in 1:length(modelGroups)){
+  groupEventList[[i]] <- dfEvents[which(dfEvents$EventGroup == modelGroups[i]),"eventNum"]
+  groupHydroCond[[i]] <- dfEvents[which(dfEvents$EventGroup == modelGroups[i]),"eventHydroCond"]
+}
+
+names(groupEventList) <- modelGroups
 
 IVs <- dfSignals[which(dfSignals[,'m1']>0),1]
-
 df <- df[,c(response,"CAGRnumber","eventNum","USGSFieldID",IVs)]
 
 #Remove rows with NA or Inf
@@ -51,6 +60,29 @@ rmRows <- unique(c(which(df$CAGRnumber %in% na.info.list$na.rows),
 dfRemoved <- df[rmRows,]
 if(length(rmRows)>0) df <- df[-rmRows,]
 
+#!!!!!!!!!! need to work on this loop for modeling #!!!!!!!!!!!!!!!!!!!!!!!!
+# NEED TO DEAL WITH GROUPS WITH NO VARIABILITY
+
+modelVariables <- list()
+for(i in 1:length(modelGroups)){
+  groupRows <- which(df$eventNum %in% groupEventList[[i]])
+  y <- df[groupRows,response]
+  x <- as.matrix(df[groupRows,IVs])
+  mg.cv <- cv.glmnet(x=x, y=y,family="gaussian",nfolds = 4)
+  
+  mg <- glmnet(x=x, y=y,family="gaussian")
+  
+  #Extract Coefficients from cv-determined model
+  Coefficients <- coef(mg, s = mg.cv$lambda.min)
+  Coefficients <- coef(mg, s = mg.cv$lambda.1se)
+  Active.Index <- which(Coefficients != 0)
+  Active.Coefficients <- Coefficients[Active.Index];Active.Coefficients
+  Active.Coef.names <- row.names(coef(mg.cv))[Active.Index];Active.Coef.names
+  modelVariables[[i]] <- Active.Coef.names
+  predictions <- predict(mg.cv,newx=as.matrix(df[,IVs]),s=c("lambda.1se"))
+  
+}
+  
 
 events <- table(df$event)
 plotEvents <- names(which(events>13))
