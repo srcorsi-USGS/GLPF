@@ -180,35 +180,79 @@ for(i in 1:length(plotEvents)){
 dev.off()
 shell.exec(filenm)
 
-##---------------------------------------------
-#
-#NEXT STEPS
-#
-# 1. Reduce variables: start with computing standardized coeffs and reduce lowest ones first
-# 2. Weight the highest and lowest double
-# 
-##---------------------------------------------
+##########################################################################################
+# Remove all variables except those in the model, re-filter dataframe and refit model
+##########################################################################################
+
+BetasNames <- grep('cp',names(nonzero.glmnet.cr(m, s = BIC.step)$beta),value=TRUE,invert = TRUE)
+
+df <- df.orig
+df$response <- df$sources2
+df <- df[,c(response,"CAGRnumber","eventNum",BetasNames)]
+df$response <- factor(df$response,levels=
+                        c("UncontaminatedLow","Uncontaminated", "Animal","Human","HumanHigh"))
+response <- "response"
+df <- df[-which(is.na(df$response)),]
+
+IVs <- BetasNames
+
+na.info.list <- na.info(df,first.col = BetasNames[1])
+rmRows <- unique(c(which(df$CAGRnumber %in% na.info.list$na.rows),
+                   na.info.list$nan.rows,
+                   na.info.list$inf.rows))
+dfRemoved <- df[rmRows,]
+df <- df[-rmRows,]
 
 
-# coefsOrd <- coef(m,s=BIC.model)[[2]]
-# 
-# coefsOrd <- coef(m,s=5)[[2]]
-# coefsOrd <- coefsOrd[which(coefsOrd !=0)]
 
-predicted <- predict(m,s=BIC.model)$probs
-plot(predict(m)$BIC)
-plot(predict(m)$AIC)
-predict(m)$AIC
-predict(m)$class[1:20]
+y <- df[,response]
+x <- as.matrix(df[,IVs])
 
-modelSelection <- 11
+m <- glmnet.cr(x, y)
 
-predBIC <- predicted[,,modelSelection]
+BIC.step <- select.glmnet.cr(m)
+mFit<-fitted(m, s = BIC.step)
+names(mFit)
+#[1] "BIC" "AIC" "class" "probs"
+table(mFit$class, y)
 
-predictions <- apply(predBIC,MARGIN = 1,which.max)
-plot(as.numeric(y)~jitter(predictions))
+predicted <- factor(mFit$class,
+                    levels = 
+                      c("UncontaminatedLow","Uncontaminated", "Animal","Human","HumanHigh")) %>%
+  as.numeric()
+observed <- as.numeric(y)
 
-plot(m)
-plot(m, xvar = "step", type = "bic")
-plot(m, xvar = "step", type = "coefficients")
+par(mar=c(6,10,2,1))
+plot(jitter(observed),jitter(predicted),xaxt='n',yaxt='n',ylab='',xlab='')
+axis(side=1,at = 1:5,labels=levels(y))
+axis(side=2,at = 1:5,labels=levels(y),las=2)
+mtext("Observed",side=1,line=3,font=2)
+mtext("Predicted",side=2,line=8,font=2)
+abline(h=3.5,v=3.5,lty=2,col='blue')
+
+
+
+#######################################################
+## Plot by event ###################################
+events <- table(df$event)
+plotEvents <- names(which(events>10))
+filenm <- 'LassoOrdinalByEvent2.pdf'
+pdf(filenm)
+for(i in 1:length(plotEvents)){
+  eventRows <- which(df$eventNum==plotEvents[i])
+  par(mar=c(6,10,2,1))
+  plot(jitter(observed),jitter(predicted),xaxt='n',yaxt='n',ylab='',xlab='',col='grey')
+  points(jitter(observed[eventRows]),jitter(predicted[eventRows]),col='blue',pch=20)
+  axis(side=1,at = 1:5,labels=levels(y))
+  axis(side=2,at = 1:5,labels=levels(y),las=2)
+  mtext("Observed",side=1,line=3,font=2)
+  mtext("Predicted",side=2,line=8,font=2)
+  mtext(plotEvents[i],side=3,line=1)
+  abline(h=3.5,v=3.5,lty=2,col='blue')
+}
+
+dev.off()
+shell.exec(filenm)
+
+
 
