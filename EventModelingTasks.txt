@@ -1,0 +1,17 @@
+1. Use event groupings (eventFreqAndDates.csv) to attempt individual models.
+  -use only groups with >= 20 observations.
+  
+2. Compile selected variables from models by event.
+
+3. Show Fl variables on EEMS graph for each event--separate EEMs per event
+   -Choose an EEMs graph to use as an example of where things are
+   -use files here: .\raw_data\opticalSummary to locate where signals are
+     -Draw line between signals for ratios
+	 
+4. If possible, include multiple EEMs graphs per page to examine locations of signals
+
+5. Reduce signals based on similarity
+
+6. Build model for whole data set based on final signals chosen
+
+7. Plot by event to evaluate effectiveness
