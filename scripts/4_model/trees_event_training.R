@@ -266,46 +266,49 @@ summaryDF$sources2 <- factor(summaryDF$sources2)
 
 response_list <- c("contamination_rank","sources2")
 df.sum.total <- data.frame()
-
-for(responses in response_list){
+responses <- "sources2"
+# for(responses in response_list){
   threshold <- 2.5
   
   form.responses <- ifelse(log.responses, paste("log10(",responses,")"),responses)
   
   form <- formula(paste(form.responses, "~", paste("fourier(DecYear) +",paste(IVs,collapse="+"))))
   
-  nEvents <- data.frame(table(summaryDF$eventNum)) %>%
-    filter(Freq > 10) %>%
-    mutate(Var1 = as.character(Var1))
+  nGroups <- read.csv("scripts/4_model/eventFreqAndDates.csv", stringsAsFactors = FALSE)
   
-  subFolder <- file.path("cached_figures","trees","baseFlow","events")
+  subFolder <- file.path("cached_figures","trees","baseFlow","group")
   dir.create(subFolder, showWarnings = FALSE)
   
   pdf(file.path(subFolder,paste0(responses,'_baseFlow_events.pdf')),width=11,height=8)
-
-  for(i in nEvents$Var1){
-    training_data <- filter(summaryDF, eventNum != i)
-    testing_data <- filter(summaryDF, eventNum == i)
-    
-    m <- tryCatch({ctree(form, data = training_data)
-    }, error = function(e) NULL)
-    
-    if(!is.null(m)){
   
-      df.sum <- plotStuff_party(m, 
-                                summaryDF = training_data, 
-                                threshold = threshold, 
-                                eventDF = testing_data,
-                                model.type =   paste0(i,"only Base Flow"), 
-                                subFolder=subFolder)
-      df.sum$responses <- responses
-      df.sum.total <- bind_rows(df.sum.total, df.sum)
-      
-    }
+  for(i in unique(nGroups$EventGroup)){
+    events <- nGroups$eventNum[nGroups$EventGroup == i]
     
+    training_data <- filter(summaryDF, eventNum %in% events)
+    testing_data <- filter(summaryDF, !(eventNum %in% i))
+    
+    if(nrow(training_data) > 20){
+      
+      cat(i,"\n")
+      m <- tryCatch({ctree(form, data = training_data)
+      }, error = function(e) NULL)
+
+      if(!is.null(m)){
+
+        df.sum <- plotStuff_party(m,
+                                  summaryDF = training_data,
+                                  threshold = threshold,
+                                  eventDF = testing_data,
+                                  model.type =   paste0(i,"only Base Flow"),
+                                  subFolder=subFolder)
+        df.sum$responses <- responses
+        df.sum.total <- bind_rows(df.sum.total, df.sum)
+
+      }
+    }
   }
   dev.off()
-}
+# }
 
 df.sum.total <- select(df.sum.total, model, responses, everything())
 
