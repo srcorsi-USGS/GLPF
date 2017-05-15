@@ -279,13 +279,13 @@ responses <- "sources2"
   subFolder <- file.path("cached_figures","trees","baseFlow","group")
   dir.create(subFolder, showWarnings = FALSE)
   
-  pdf(file.path(subFolder,paste0(responses,'_baseFlow_events.pdf')),width=11,height=8)
+  pdf(file.path(subFolder,paste0(responses,'_baseFlow_events_factor.pdf')),width=11,height=8)
   
   for(i in unique(nGroups$EventGroup)){
     events <- nGroups$eventNum[nGroups$EventGroup == i]
     
     training_data <- filter(summaryDF, eventNum %in% events)
-    testing_data <- filter(summaryDF, !(eventNum %in% i))
+    testing_data <- filter(summaryDF, !(eventNum %in% events))
     
     if(nrow(training_data) > 20){
       
