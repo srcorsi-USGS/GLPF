@@ -1,9 +1,14 @@
 library(dplyr)
 
-meanDates2 <- df.orig %>% group_by(eventNum) %>%
+cached.path <- "cached_data"
+base.name <- "_noQA"
+cached.save <- "8_process_new_categories"
+summaryDF <- readRDS(file.path(cached.path,"8_process_new_categories","rds",paste0("summary",base.name,".rds")))
+df.orig <- summaryDF
+
+meanDates <- df.orig %>% group_by(eventNum) %>%
   summarise(eventDate = min(pdate),
             hydroCondition = unique(hydroCondition)[2])
-cbind(meanDates$hydroCondition,meanDates2$hydroCondition)
 
 dfEvents <- cbind(meanDates,table(df.orig$eventNum))
 
@@ -17,7 +22,7 @@ dfEvents <- cbind(dfEvents,eventHydroCond)
 dfEvents$State <- substr(dfEvents$eventNum,1,2)
 dfEvents <- arrange(dfEvents,State,eventDate)
 
-write.csv(dfEvents,file="eventFreqAndDates.csv")
+write.csv(dfEvents,file="./cached_data/8_process_new_categories/eventFreqAndDates.csv")
 
 
 plot(dfEvents$Freq~dfEvents$eventDate)
