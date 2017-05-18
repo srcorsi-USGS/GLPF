@@ -14,9 +14,8 @@ df$response <- factor(df$response,levels=
 response <- "response"
 df <- df[-which(is.na(df$response)),]
 
-beginIV <- "OB1"
-#beginIV <- "eventGroup"
-endIV <- "logSn.9"
+beginIV <- "Sag240_255"
+endIV <- "rBS44_S45_BF"
 
 begin <- which(names(df)==beginIV)
 end <- which(names(df)==endIV)
@@ -32,21 +31,33 @@ rmCols <- unique(which(names(df) %in% c(na.info.list$na.cols.partial,
                                         na.info.list$inf.cols)))
 dfrmCols <- df[,-rmCols]
 dfRmRows <- df[rmRows,]
-df <- df[-rmRows,]
+df <- df[,-rmCols]
 
-groupFreq <- table(df$eventGroup)
+beginIV <- "Sag240_255"
+endIV <- "rBS44_S45_BF"
+begin <- which(names(df)==beginIV)
+end <- which(names(df)==endIV)
+IVs <- names(df)[begin:end]
 
-groups <- names(groupFreq)[which(groupFreq>25)]
+groupFreq <- table(df$eventGroup2)
+
+groups <- names(groupFreq)[which(groupFreq>30)]
 
 #for(i in 1:length(groups)){
-  subdf <- df[which(df$eventGroup==groups[i]),]
+i <- 1
+
+i <- i+1
+  subdf <- df[which(df$eventGroup2==groups[i]),]
   
   y <- subdf[,response]
   unique(y)
-  if(length(unique(y))>2){
-x <- as.matrix(subdf[,IVs])
+#  if(length(unique(y))>2){
+x <- as.matrix(subdf[,IVs[1:10]])
 
 m <- glmnet.cr(x, y)
+
+plot.glmnet.cr(m)
+print(m)
 
 BIC.step <- select.glmnet.cr(m)
 mFit<-fitted(m, s = BIC.step)

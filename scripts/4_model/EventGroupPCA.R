@@ -58,15 +58,15 @@ groups <- unique(dfGroups[,groupVar])
 colorOptions <- brewer.pal(9, "Set1")
 
 
-filenm <- "PCAEventGroupRatios2.pdf"
+filenm <- "PCAEventGroupRatios3.pdf"
 pdf(filenm)
-par(mar=c(0,0,0,0),oma=c(6,6,3,2),mfrow=c(3,4))
+par(mar=c(0,0,0,0),oma=c(6,6,3,2),mfrow=c(4,4))
 State <- ""
 for (i in 1:length(groups)){
-  if(State != substr(groups[i],1,1)){
-  par(mar=c(0,0,0,0),oma=c(6,6,3,2),mfrow=c(3,4))
-  State <- substr(groups[i],1,1)
-  }
+  # if(State != substr(groups[i],1,1)){
+  # par(mar=c(0,0,0,0),oma=c(6,6,3,2),mfrow=c(3,4))
+  # State <- substr(groups[i],1,1)
+  # }
     
   subdf <- dfGroups[which(dfGroups[,groupVar]==groups[i]),]
   events <- unique(subdf[,"eventNum"])
@@ -78,7 +78,7 @@ for (i in 1:length(groups)){
        cex=cexpoints,col="grey",pch=20)   # 
   points(pca$x[,1],pca$x[,2],  
        cex=cexpoints,col=plotColors,pch=20)   # 
-  text(max(pca$x[,1]*0.6),max(pca$x[,2]),paste(groups[i],",",hydroCond),cex=0.8)
+  text(min(pca$x[,1]),min(pca$x[,2]),paste(groups[i],",",hydroCond),cex=0.8,adj=0)
 }
 
 legend("bottom",legend=1:7,col=colorOptions[1:7],pch=20,bty="n",horiz=TRUE,inset=-0.2,xpd=NA)
