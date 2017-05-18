@@ -12,7 +12,7 @@ df.orig <- readRDS("./cached_data/8_process_new_categories/rds/summary_noWW_noQA
 dfGroups <- read.csv("./cached_data/8_process_new_categories/eventFreqAndDatesWGroups.csv",stringsAsFactors = FALSE)
 df <- df.orig
 
-groupVar <- 
+groupVar <- "EventGroup2"
 
 beginIV <- "Sag240_255"
 endIV <- "rBS44_S45_BF"
@@ -29,12 +29,17 @@ rmCols <- unique(which(names(df) %in% c(na.info.list$na.cols.partial,
                                         na.info.list$inf.cols)))
 dfrmCols <- df[,-rmCols]
 dfRemoved <- df[rmRows,]
-df <- df[-rmCols,]
+df <- df[,-rmCols]
 
 begin <- which(names(df)==beginIV)
 end <- which(names(df)==endIV)
 IVs <- names(df)[begin:end]
 x <- as.matrix(df[,IVs])
+
+countUnique <- function(x)length(unique(x))
+
+test <- apply(df[,IVs],1,countUnique)
+which(test < 10)
 
 pca <-prcomp(x,center = TRUE, scale=TRUE) 
 
@@ -66,21 +71,17 @@ for (i in 1:length(groups)){
   subdf <- dfGroups[which(dfGroups[,groupVar]==groups[i]),]
   events <- unique(subdf[,"eventNum"])
   hydroCond <- unique(subdf[,"eventHydroCond"])
-#  eventSub <- dfGroups[which(dfGroups$EventGroup==groups[i]),"eventNum"]
   plotColors <- rep(NA,dim(df)[1])
-  # eventColors <- colorOptions[1:length(events)]
-  # names(eventColors) <- events
   for(j in 1:length(events))plotColors <- ifelse(df$eventNum==events[j],colorOptions[j],plotColors)
 
-  #plotColors[which(df$eventNum %in% eventSub)] <- "blue"
-  
   plot(pca$x[,1],pca$x[,2], xlab="", ylab="", xaxt="n",yaxt="n",
        cex=cexpoints,col="grey",pch=20)   # 
   points(pca$x[,1],pca$x[,2],  
        cex=cexpoints,col=plotColors,pch=20)   # 
-  text(max(pca$x[,1]*0.8),max(pca$x[,2]),paste(groups[i],",",hydroCond),cex=0.8)
+  text(max(pca$x[,1]*0.6),max(pca$x[,2]),paste(groups[i],",",hydroCond),cex=0.8)
 }
 
+legend("bottom",legend=1:7,col=colorOptions[1:7],pch=20,bty="n",horiz=TRUE,inset=-0.2,xpd=NA)
 dev.off()
 shell.exec(filenm)
 
