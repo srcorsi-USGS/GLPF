@@ -8,13 +8,14 @@ df.orig <- readRDS("./cached_data/8_process_new_categories/rds/summary_noWW_noQA
 
 #df.orig <- summaryDF
 df <- df.orig
-df$response <- df$sources2
+df$response <- df$sources
 df$response <- factor(df$response,levels=
                         c("UncontaminatedLow","Uncontaminated", "Animal","Human","HumanHigh"))
 response <- "response"
 df <- df[-which(is.na(df$response)),]
 
 beginIV <- "OB1"
+#beginIV <- "eventGroup"
 endIV <- "logSn.9"
 
 begin <- which(names(df)==beginIV)
@@ -35,9 +36,9 @@ df <- df[-rmRows,]
 
 groupFreq <- table(df$eventGroup)
 
-groups <- names(groupFreq)[which(groupFreq>30)]
+groups <- names(groupFreq)[which(groupFreq>25)]
 
-for(i in 1:length(groups)){
+#for(i in 1:length(groups)){
   subdf <- df[which(df$eventGroup==groups[i]),]
   
   y <- subdf[,response]
