@@ -1,7 +1,9 @@
 # Next steps: 
+# consider refitting with lm() and examining slopes by event
+# consider automated way to keep track of slopes for individual events within group regressions
+# -maybe use median regression for this.
+
 # Heuristic overlap analysis: decision tree
-
-
 
 
 library(glmnet)
