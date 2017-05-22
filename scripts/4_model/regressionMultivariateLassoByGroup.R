@@ -151,6 +151,51 @@ for(i in 1:length(groups)){
   legendNames <- names(plotCol)
   legend('bottomright',legend = legendNames,col=plotCol,pch=plotpch,inset = c(-0.15,0),bty = "n",xpd=NA)
  
+  
+  # calibrate Tobit regression and plot
+  library(survival)
+
+  IVs <- Active.Coef.names[-1]
+  response <- response
+  LOQ <- 225
+
+  ## Compute survival coefficients for Lachno regression ##
+  if(length(IVs) > 0){
+  y <- Surv(log10(subdf[,response[1]]), subdf[,response[1]]>LOQ, type="left")
+  #dfPredStd <- as.data.frame(scale(dfPred[,IVs]))
+  form <- formula(paste('y ~',paste(IVs,collapse=' + ')))
+  msurvStd <- survreg(form,data=subdf,dist='weibull')
+  summary(msurvStd)
+  predictions <- predict(msurvStd,newdata = subdf)
+  
+  par(mfcol=c(2,1),mar=c(3,4,3,1),oma=c(0,2,0,4))
+  #Plot Lachno
+  plot(subdf[,response[1]],predictions,col=plotcolors,pch=plotpch,log='x',xlab="",ylab="")
+  mtext(paste(response[1],"Survival"),line=1)
+  mtext(paste(Active.Coef.names[-1],collapse=' + '),cex=0.7)
+  mtext(groups[i],line=2,font=2)
+  abline(h=4,v=10000,col="blue",lty=2)
+  
+  
+  ## Compute survival coefficients for Lachno regression ##
+  y <- Surv(log10(subdf[,response[2]]), subdf[,response[2]]>LOQ, type="left")
+  #dfPredStd <- as.data.frame(scale(dfPred[,IVs]))
+  form <- formula(paste('y ~',paste(IVs,collapse=' + ')))
+  msurvStd <- survreg(form,data=subdf,dist='weibull')
+  summary(msurvStd)
+  predictions <- predict(msurvStd,newdata = subdf)
+  
+  #Plot BacHum
+  plot(subdf[,response[2]],predictions,col=plotcolors,pch=plotpch,log='x',xlab="",ylab="")
+  mtext(paste(response[2],"Survival"),line=1)
+  mtext(groups[i],line=2,font=2)
+  abline(h=4,v=10000,col="blue",lty=2)
+  }else{
+    par(mfrow=c(1,1))
+    plot(1:10,1:10,xaxt="n",yaxt="n",ylab="",xlab="",pch="")
+  text(5,5,"No Lasso Variables")
+  }
+  
   mg.List[[i]] <- mg
   mg.cv.List[[i]] <- mg.cv
   
