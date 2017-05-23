@@ -58,7 +58,7 @@ groups <- unique(dfGroups[,groupVar])
 colorOptions <- brewer.pal(9, "Set1")
 
 
-filenm <- "PCAEventGroupRatios3.pdf"
+filenm <- "PCAEventGroupRatios4.pdf"
 pdf(filenm)
 par(mar=c(0,0,0,0),oma=c(6,6,3,2),mfrow=c(4,4))
 State <- ""
