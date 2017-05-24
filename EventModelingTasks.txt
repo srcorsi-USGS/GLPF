@@ -1,17 +1,31 @@
 1. Use event groupings (eventFreqAndDates.csv) to attempt individual models.
-  -use only groups with >= 20 observations.
+	a. use only groups with >= 40 observations.
   
-2. Compile selected variables from models by event.
+	b. Compile selected variables from models by event.
 
-3. Show Fl variables on EEMS graph for each event--separate EEMs per event
-   -Choose an EEMs graph to use as an example of where things are
-   -use files here: .\raw_data\opticalSummary to locate where signals are
+	c. Show Fl variables on EEMS graph for each event--separate EEMs per event
+	-Choose an EEMs graph to use as an example of where things are
+	-use files here: .\raw_data\opticalSummary to locate where signals are
      -Draw line between signals for ratios
+	 -Done: examine correlations of variables
 	 
-4. If possible, include multiple EEMs graphs per page to examine locations of signals
+	d. Include multiple EEMs graphs per page to examine locations of signals
 
-5. Reduce signals based on similarity
+	e. Reduce signals based on similarity
 
-6. Build model for whole data set based on final signals chosen
+	f. Build model for whole data set based on final signals chosen
 
-7. Plot by event to evaluate effectiveness
+	g. Plot by event to evaluate effectiveness
+	
+
+2. Done: consider refitting with survreg() using LASSO variables and examining slopes by event
+		xxxconsider automated way to keep track of slopes for individual events within group regressions
+		xxx-maybe use median regression for this.
+
+3. Done: run regression with the ~90  L3 samples
+4. Lasso regression with e. coli and entero
+
+5. Heuristic overlap analysis: decision tree
+	-Choose least overlap with local sanitary sewer signals or high contamination signals and split
+	-continue after splits to a point where there is too much overlap
+	-Graph with boxplots or counts of categories
